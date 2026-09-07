@@ -26,10 +26,8 @@ namespace HRMS.Infrastructure
      {
          options.LoginPath = "/Account/Login";
          options.AccessDeniedPath = "/Account/AccessDenied";
-
-         options.ExpireTimeSpan = TimeSpan.FromHours(8);
-
-         options.SlidingExpiration = false;
+         options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+         options.SlidingExpiration = true;   // كل ما المستخدم نشط، المدة بتتجدد تلقائي
      });
 
             services.AddKeyedScoped<IDataSeeder, IdentitySeeder>("Identity");
