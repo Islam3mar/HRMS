@@ -1,0 +1,70 @@
+﻿@model HRMS.Web.ViewModels.RoleFormViewModel
+@{
+    ViewData["Title"] = "اضافة مجموعة جديدة";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">مجموعة المستخدمين</a></li>
+        <li class="breadcrumb-item active" aria-current="page">اضافة مجموعة جديدة</li>
+    </ol>
+</nav>
+
+<form asp-controller="Roles" asp-action="Create" method="post" novalidate>
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <button type="button" id="privateCustomBtn" class="btn btn-outline-secondary" disabled>Private custom</button>
+            <button type="button" id="selectAllBtn" class="btn btn-primary">كل الصلاحيات</button>
+        </div>
+        <button type="submit" class="btn btn-danger">SAVE</button>
+    </div>
+
+    <div class="form-group mb-4">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control" placeholder="اسم المجموعة" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <table class="table table-bordered text-center align-middle">
+        <thead class="table-light">
+            <tr>
+                <th class="text-end">الصفحة</th>
+                <th>اضافة</th>
+                <th>حذف</th>
+                <th>تعديل</th>
+                <th>عرض</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Permissions.Count; i++)
+            {
+                <tr>
+                    <td class="text-end">
+                        @Model.Permissions[i].PageName
+                        <input type="hidden" asp-for="Permissions[i].SystemPage" />
+                        <input type="hidden" asp-for="Permissions[i].PageName" />
+                    </td>
+                    <td><input type="checkbox" class="perm-checkbox form-check-input" asp-for="Permissions[i].CanAdd" /></td>
+                    <td><input type="checkbox" class="perm-checkbox form-check-input" asp-for="Permissions[i].CanDelete" /></td>
+                    <td><input type="checkbox" class="perm-checkbox form-check-input" asp-for="Permissions[i].CanEdit" /></td>
+                    <td><input type="checkbox" class="perm-checkbox form-check-input" asp-for="Permissions[i].CanView" /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</form>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        document.getElementById('selectAllBtn').addEventListener('click', function() {
+            var boxes = document.querySelectorAll('.perm-checkbox');
+            var allChecked = Array.from(boxes).every(function(b) { return b.checked; });
+            boxes.forEach(function(b) { b.checked = !allChecked; });
+        });
+    </script>
+}

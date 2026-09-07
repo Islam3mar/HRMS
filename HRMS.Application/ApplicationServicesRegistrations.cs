@@ -9,11 +9,7 @@ namespace HRMS.Application
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             services.AddScoped<IAuthService, AuthService>();
-
-            // هنضيف هنا أي Service جديد في الـ Application Layer لما نوصله
-            // services.AddScoped<IEmployeeService, EmployeeService>();
-            // services.AddScoped<IRoleService, RoleService>();
-            // services.AddScoped<IPayrollService, PayrollService>();
+            services.AddScoped<IRoleService, RoleService>();
 
             return services;
         }

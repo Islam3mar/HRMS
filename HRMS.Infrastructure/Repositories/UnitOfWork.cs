@@ -13,11 +13,13 @@ namespace HRMS.Domain.Repositories.Classes
 
         private IUserRepository? _users;
         private IEmployeeRepository? _employees;
+        private IRoleRepository? _roles;
 
         public UnitOfWork(ApplicationDbContext context) => _context = context;
 
         public IUserRepository Users => _users ??= new UserRepository(_context);
         public IEmployeeRepository Employees => _employees ??= new EmployeeRepository(_context);
+        public IRoleRepository Roles => _roles ??= new RoleRepository(_context);
 
         public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
 

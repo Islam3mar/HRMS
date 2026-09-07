@@ -7,7 +7,8 @@ namespace HRMS.Domain.Interfaces
     public interface IUnitOfWork : IDisposable
     {
         IUserRepository Users { get; }
-        IEmployeeRepository Employees { get; }   // هنضيفها لما نوصل لفيتشر الموظفين
+        IEmployeeRepository Employees { get; }
+        IRoleRepository Roles { get; }
 
         Task<int> SaveChangesAsync();
     }
