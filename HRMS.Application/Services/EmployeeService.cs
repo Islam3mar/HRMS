@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using AutoMapper;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Entities;
@@ -12,14 +13,16 @@ namespace HRMS.Application.Services
     public class EmployeeService : IEmployeeService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
         // تاريخ تأسيس الشركة (قاعدة رقم 6) - عدّله لو التاريخ مختلف
         private static readonly DateTime CompanyFoundationDate = new(2005, 6, 6);
         private const int MinimumAge = 20; // قاعدة رقم 4
 
-        public EmployeeService(IUnitOfWork unitOfWork)
+        public EmployeeService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         public async Task<IEnumerable<Employee>> GetAllEmployeesAsync()
@@ -35,21 +38,8 @@ namespace HRMS.Application.Services
 
             if (result.HasErrors) return result;
 
-            var employee = new Employee
-            {
-                FullName = input.FullName.Trim(),
-                Address = input.Address.Trim(),
-                PhoneNumber = input.PhoneNumber.Trim(),
-                Gender = input.Gender,
-                Nationality = input.Nationality.Trim(),
-                BirthDate = input.BirthDate,
-                NationalId = input.NationalId.Trim(),
-                ContractDate = input.ContractDate,
-                Salary = input.Salary,
-                AttendanceTime = input.AttendanceTime,
-                DepartureTime = input.DepartureTime,
-                CreatedAt = DateTime.Now
-            };
+            var employee = _mapper.Map<Employee>(input);
+            employee.CreatedAt = DateTime.Now;
 
             await _unitOfWork.Employees.AddAsync(employee);
             await _unitOfWork.SaveChangesAsync();
@@ -73,17 +63,7 @@ namespace HRMS.Application.Services
             await ValidateAsync(result, input, excludeEmployeeId: id);
             if (result.HasErrors) return result;
 
-            employee.FullName = input.FullName.Trim();
-            employee.Address = input.Address.Trim();
-            employee.PhoneNumber = input.PhoneNumber.Trim();
-            employee.Gender = input.Gender;
-            employee.Nationality = input.Nationality.Trim();
-            employee.BirthDate = input.BirthDate;
-            employee.NationalId = input.NationalId.Trim();
-            employee.ContractDate = input.ContractDate;
-            employee.Salary = input.Salary;
-            employee.AttendanceTime = input.AttendanceTime;
-            employee.DepartureTime = input.DepartureTime;
+            _mapper.Map(input, employee); // in-place mapping على الـ Entity الموجود
             employee.UpdatedAt = DateTime.Now;
 
             _unitOfWork.Employees.Update(employee);

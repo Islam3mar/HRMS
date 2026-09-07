@@ -4,6 +4,7 @@ using System.Text;
 using HRMS.Application.Common;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
+using HRMS.Application.Profiles;
 using HRMS.Domain.Entities;
 using HRMS.Domain.Interfaces;
 
@@ -46,14 +47,9 @@ namespace HRMS.Application.Services
                 return result;
             }
 
-            var user = new User
-            {
-                FullName = fullName.Trim(),
-                Username = username.Trim(),
-                Email = email.Trim(),
-                PasswordHash = PasswordHasher.Hash(password),
-                RoleId = roleId
-            };
+            // الـ hashing منطق أمني، فضل هنا في الـ Service ومش اتنقل للـ Profile
+            var passwordHash = PasswordHasher.Hash(password);
+            var user = UserProfile.ToEntity(fullName, username, email, passwordHash, roleId);
 
             await _unitOfWork.Users.AddAsync(user);
             await _unitOfWork.SaveChangesAsync();
