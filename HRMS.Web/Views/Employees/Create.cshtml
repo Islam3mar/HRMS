@@ -1,0 +1,101 @@
+﻿@model HRMS.Web.ViewModels.EmployeeFormViewModel
+@{
+    ViewData["Title"] = "اضافة موظف جديد";
+}
+
+<div dir="rtl">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">الرئيسية</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">الموظفين</a></li>
+            <li class="breadcrumb-item active">اضافة موظف جديد</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header text-center fw-bold">الموظفين</div>
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="row">
+                    <div class="col-md-6 border-end">
+                        <h6 class="fw-bold mb-3">بيانات العمل</h6>
+
+                        <div class="mb-3">
+                            <label asp-for="ContractDate" class="form-label"></label>
+                            <input asp-for="ContractDate" class="form-control" />
+                            <span asp-validation-for="ContractDate" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Salary" class="form-label"></label>
+                            <input asp-for="Salary" class="form-control" placeholder="الراتب" />
+                            <span asp-validation-for="Salary" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="AttendanceTime" class="form-label"></label>
+                            <input asp-for="AttendanceTime" class="form-control" />
+                            <span asp-validation-for="AttendanceTime" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="DepartureTime" class="form-label"></label>
+                            <input asp-for="DepartureTime" class="form-control" />
+                            <span asp-validation-for="DepartureTime" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3">البيانات الاساسية</h6>
+
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label"></label>
+                            <input asp-for="FullName" class="form-control" placeholder="اسم الموظف" />
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Address" class="form-label"></label>
+                            <input asp-for="Address" class="form-control" placeholder="العنوان" />
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="PhoneNumber" class="form-label"></label>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="رقم تليفون" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Gender" class="form-label"></label>
+                            <select asp-for="Gender" asp-items="Model.GenderOptions" class="form-select"></select>
+                            <span asp-validation-for="Gender" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Nationality" class="form-label"></label>
+                            <input asp-for="Nationality" class="form-control" placeholder="الجنسية" />
+                            <span asp-validation-for="Nationality" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="BirthDate" class="form-label"></label>
+                            <input asp-for="BirthDate" class="form-control" />
+                            <span asp-validation-for="BirthDate" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="NationalId" class="form-label"></label>
+                            <input asp-for="NationalId" class="form-control" placeholder="الرقم القومي" />
+                            <span asp-validation-for="NationalId" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-start mt-3">
+                    <button type="submit" class="btn" style="background-color:#ff6b81; color:white;">حفظ</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">رجوع</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

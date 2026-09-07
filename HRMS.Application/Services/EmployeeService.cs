@@ -1,0 +1,171 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Text.RegularExpressions;
+using HRMS.Application.DTOs;
+using HRMS.Application.Interfaces;
+using HRMS.Domain.Entities;
+using HRMS.Domain.Interfaces;
+
+namespace HRMS.Application.Services
+{
+    public class EmployeeService : IEmployeeService
+    {
+        private readonly IUnitOfWork _unitOfWork;
+
+        // تاريخ تأسيس الشركة (قاعدة رقم 6) - عدّله لو التاريخ مختلف
+        private static readonly DateTime CompanyFoundationDate = new(2005, 6, 6);
+        private const int MinimumAge = 20; // قاعدة رقم 4
+
+        public EmployeeService(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
+        public async Task<IEnumerable<Employee>> GetAllEmployeesAsync()
+            => await _unitOfWork.Employees.GetAllAsync();
+
+        public async Task<Employee?> GetEmployeeByIdAsync(int id)
+            => await _unitOfWork.Employees.GetByIdAsync(id);
+
+        public async Task<EmployeeResult> CreateEmployeeAsync(EmployeeInput input)
+        {
+            var result = new EmployeeResult();
+            await ValidateAsync(result, input, excludeEmployeeId: null);
+
+            if (result.HasErrors) return result;
+
+            var employee = new Employee
+            {
+                FullName = input.FullName.Trim(),
+                Address = input.Address.Trim(),
+                PhoneNumber = input.PhoneNumber.Trim(),
+                Gender = input.Gender,
+                Nationality = input.Nationality.Trim(),
+                BirthDate = input.BirthDate,
+                NationalId = input.NationalId.Trim(),
+                ContractDate = input.ContractDate,
+                Salary = input.Salary,
+                AttendanceTime = input.AttendanceTime,
+                DepartureTime = input.DepartureTime,
+                CreatedAt = DateTime.Now
+            };
+
+            await _unitOfWork.Employees.AddAsync(employee);
+            await _unitOfWork.SaveChangesAsync();
+
+            result.Success = true;
+            result.Employee = employee;
+            return result;
+        }
+
+        public async Task<EmployeeResult> UpdateEmployeeAsync(int id, EmployeeInput input)
+        {
+            var result = new EmployeeResult();
+
+            var employee = await _unitOfWork.Employees.GetByIdAsync(id);
+            if (employee == null)
+            {
+                result.FullNameError = "الموظف غير موجود";
+                return result;
+            }
+
+            await ValidateAsync(result, input, excludeEmployeeId: id);
+            if (result.HasErrors) return result;
+
+            employee.FullName = input.FullName.Trim();
+            employee.Address = input.Address.Trim();
+            employee.PhoneNumber = input.PhoneNumber.Trim();
+            employee.Gender = input.Gender;
+            employee.Nationality = input.Nationality.Trim();
+            employee.BirthDate = input.BirthDate;
+            employee.NationalId = input.NationalId.Trim();
+            employee.ContractDate = input.ContractDate;
+            employee.Salary = input.Salary;
+            employee.AttendanceTime = input.AttendanceTime;
+            employee.DepartureTime = input.DepartureTime;
+            employee.UpdatedAt = DateTime.Now;
+
+            _unitOfWork.Employees.Update(employee);
+            await _unitOfWork.SaveChangesAsync();
+
+            result.Success = true;
+            result.Employee = employee;
+            return result;
+        }
+
+        public async Task<bool> DeleteEmployeeAsync(int id)
+        {
+            var employee = await _unitOfWork.Employees.GetByIdAsync(id);
+            if (employee == null) return false;
+
+            _unitOfWork.Employees.Delete(employee);
+            await _unitOfWork.SaveChangesAsync();
+            return true;
+        }
+
+        // ---------- Validation (القواعد 1 لـ 7) ----------
+        private async Task ValidateAsync(EmployeeResult result, EmployeeInput input, int? excludeEmployeeId)
+        {
+            // قاعدة 2: الحقول المطلوبة
+            if (string.IsNullOrWhiteSpace(input.FullName))
+                result.FullNameError = "هذا الحقل مطلوب";
+
+            if (string.IsNullOrWhiteSpace(input.Address))
+                result.AddressError = "هذا الحقل مطلوب";
+
+            if (string.IsNullOrWhiteSpace(input.Nationality))
+                result.NationalityError = "هذا الحقل مطلوب";
+
+            // قاعدة 3: رقم التليفون 11 رقم بالظبط
+            if (string.IsNullOrWhiteSpace(input.PhoneNumber))
+                result.PhoneNumberError = "هذا الحقل مطلوب";
+            else if (!Regex.IsMatch(input.PhoneNumber, @"^\d{11}$"))
+                result.PhoneNumberError = "رقم التليفون يجب ان يتكون من 11 رقم";
+
+            // قاعدة 5: الرقم القومي 14 رقم بالظبط + عدم التكرار
+            if (string.IsNullOrWhiteSpace(input.NationalId))
+                result.NationalIdError = "هذا الحقل مطلوب";
+            else if (!Regex.IsMatch(input.NationalId, @"^\d{14}$"))
+                result.NationalIdError = "الرقم القومي يجب ان يتكون من 14 رقم";
+            else if (await _unitOfWork.Employees.NationalIdExistsAsync(input.NationalId.Trim(), excludeEmployeeId))
+                result.NationalIdError = "هذا الرقم القومي مستخدم بالفعل لموظف اخر";
+
+            // قاعدة 4: تاريخ الميلاد منطقي + السن لا يقل عن 20 سنة
+            if (input.BirthDate == default)
+                result.BirthDateError = "هذا الحقل مطلوب";
+            else if (input.BirthDate.Date > DateTime.Today)
+                result.BirthDateError = "تاريخ الميلاد غير صحيح";
+            else if (CalculateAge(input.BirthDate) < MinimumAge)
+                result.BirthDateError = $"يجب ان يكون عمر الموظف {MinimumAge} سنة على الاقل";
+
+            // قاعدة 6: تاريخ التعاقد لا يقل عن تاريخ تأسيس الشركة ولا يكون بالمستقبل
+            if (input.ContractDate == default)
+                result.ContractDateError = "هذا الحقل مطلوب";
+            else if (input.ContractDate.Date < CompanyFoundationDate)
+                result.ContractDateError = $"تاريخ التعاقد لا يمكن ان يكون قبل {CompanyFoundationDate:yyyy/MM/dd}";
+            else if (input.ContractDate.Date > DateTime.Today)
+                result.ContractDateError = "تاريخ التعاقد غير صحيح";
+
+            // قاعدة 7: الراتب رقم صحيح اكبر من صفر (النوع decimal بيمنع الحروف والعلامات اصلاً)
+            if (input.Salary <= 0)
+                result.SalaryError = "الراتب يجب ان يكون رقم صحيح اكبر من صفر";
+
+            if (input.AttendanceTime == default)
+                result.AttendanceTimeError = "هذا الحقل مطلوب";
+
+            if (input.DepartureTime == default)
+                result.DepartureTimeError = "هذا الحقل مطلوب";
+            else if (input.AttendanceTime != default && input.DepartureTime <= input.AttendanceTime)
+                result.DepartureTimeError = "موعد الانصراف يجب ان يكون بعد موعد الحضور";
+        }
+
+        private static int CalculateAge(DateTime birthDate)
+        {
+            var today = DateTime.Today;
+            var age = today.Year - birthDate.Year;
+            if (birthDate.Date > today.AddYears(-age)) age--;
+            return age;
+        }
+    }
+}

@@ -1,0 +1,44 @@
+﻿@model IEnumerable<HRMS.Domain.Entities.Employee>
+@{
+    ViewData["Title"] = "الموظفين";
+}
+
+<div dir="rtl">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>الموظفين</h4>
+        <a asp-action="Create" class="btn" style="background-color:#ff6b81; color:white;">اضافة موظف جديد</a>
+    </div>
+
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>اسم الموظف</th>
+                <th>رقم تليفون</th>
+                <th>الرقم القومي</th>
+                <th>تاريخ التعاقد</th>
+                <th>الراتب</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var emp in Model)
+            {
+                <tr>
+                    <td>@emp.FullName</td>
+                    <td>@emp.PhoneNumber</td>
+                    <td>@emp.NationalId</td>
+                    <td>@emp.ContractDate.ToString("yyyy/MM/dd")</td>
+                    <td>@emp.Salary.ToString("N2")</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@emp.Id" class="btn btn-sm btn-outline-primary">تعديل / حذف</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
