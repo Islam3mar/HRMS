@@ -1,4 +1,5 @@
-﻿using HRMS.Application.Interfaces;
+﻿using AutoMapper;
+using HRMS.Application.Interfaces;
 using HRMS.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,13 @@ namespace HRMS.Application
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IEmployeeService, EmployeeService>();
+
+            // AutoMapper 13+ بيشتغل بس بالـ Action overload، فبنقوله يدوّر
+            // على كل الـ Profiles الموجودة في نفس الـ Assembly بتاع HRMS.Application
+            services.AddAutoMapper(cfg =>
+            {
+                cfg.AddMaps(typeof(ApplicationServicesRegistrations).Assembly);
+            });
 
             return services;
         }

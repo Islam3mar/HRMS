@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using AutoMapper;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Entities;
@@ -11,10 +12,12 @@ namespace HRMS.Application.Services
     public class RoleService : IRoleService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public RoleService(IUnitOfWork unitOfWork)
+        public RoleService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         public async Task<RoleResult> CreateRoleAsync(string name, List<PermissionInput> permissions)
@@ -35,14 +38,7 @@ namespace HRMS.Application.Services
                 Name = name.Trim(),
                 Permissions = permissions!
                     .Where(p => p.HasAnyPermission)
-                    .Select(p => new RolePermission
-                    {
-                        SystemPage = p.SystemPage,
-                        CanView = p.CanView,
-                        CanAdd = p.CanAdd,
-                        CanEdit = p.CanEdit,
-                        CanDelete = p.CanDelete
-                    })
+                    .Select(p => _mapper.Map<RolePermission>(p))
                     .ToList()
             };
 
