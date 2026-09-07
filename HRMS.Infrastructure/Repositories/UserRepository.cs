@@ -23,5 +23,12 @@ namespace HRMS.Infrastructure.Repositories
         {
             return await Query.AnyAsync(u => u.Username == username || u.Email == email);
         }
+
+        public async Task<IEnumerable<User>> GetAllWithRoleAsync()
+        {
+            return await Query
+                .Include(u => u.Role)
+                .ToListAsync();
+        }
     }
 }

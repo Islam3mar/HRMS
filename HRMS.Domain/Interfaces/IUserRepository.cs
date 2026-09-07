@@ -16,5 +16,7 @@ namespace HRMS.Domain.Interfaces
         // الخاصة بس
         Task<User?> GetByUsernameOrEmailAsync(string usernameOrEmail);
         Task<bool> UsernameOrEmailExistsAsync(string username, string email);
+
+        Task<IEnumerable<User>> GetAllWithRoleAsync();
     }
 }
