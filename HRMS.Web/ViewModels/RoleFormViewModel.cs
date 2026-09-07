@@ -5,6 +5,7 @@ namespace HRMS.Web.ViewModels
     public class RoleFormViewModel
     {
         [Display(Name = "اسم المجموعة")]
+        [Required(ErrorMessage = "من فضلك ادخل اسم المجموعه")]
         public string Name { get; set; } = string.Empty;
 
         public List<PermissionRowViewModel> Permissions { get; set; } = new();
