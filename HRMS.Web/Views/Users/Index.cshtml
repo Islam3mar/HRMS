@@ -1,0 +1,45 @@
+﻿@model IEnumerable<HRMS.Domain.Entities.User>
+@{
+    ViewData["Title"] = "مستخدمين النظام";
+}
+
+<div dir="rtl">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">الرئيسية</a></li>
+            <li class="breadcrumb-item active">مستخدمين النظام</li>
+        </ol>
+    </nav>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>مستخدمين النظام</h4>
+        <a asp-action="Create" class="btn btn-primary">اضافة مستخدم</a>
+    </div>
+
+    <table class="table table-bordered text-center">
+        <thead class="table-light">
+            <tr>
+                <th>الاسم بالكامل</th>
+                <th>اسم المستخدم</th>
+                <th>البريد الالكتروني</th>
+                <th>الصلاحيات</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.FullName</td>
+                    <td>@user.Username</td>
+                    <td>@user.Email</td>
+                    <td>@user.Role.Name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
