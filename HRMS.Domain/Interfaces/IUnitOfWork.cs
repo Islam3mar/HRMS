@@ -9,6 +9,7 @@ namespace HRMS.Domain.Interfaces
         IUserRepository Users { get; }
         IEmployeeRepository Employees { get; }
         IRoleRepository Roles { get; }
+        IGeneralSettingsRepository GeneralSettings { get; }
 
         Task<int> SaveChangesAsync();
     }
