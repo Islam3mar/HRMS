@@ -34,6 +34,7 @@ namespace HRMS.Infrastructure.Seeding
                     new() { SystemPage = SystemPage.AttendanceReport, CanView = true, CanAdd = true, CanEdit = true, CanDelete = true },
                     new() { SystemPage = SystemPage.PayrollReport, CanView = true, CanAdd = true, CanEdit = true, CanDelete = true },
                     new() { SystemPage = SystemPage.UsersManagement, CanView = true, CanAdd = true, CanEdit = true, CanDelete = true },
+                    new() { SystemPage = SystemPage.OfficialHolidays, CanView = true, CanAdd = true, CanEdit = true, CanDelete = true },
                 }
             };
 

@@ -1,0 +1,108 @@
+﻿@model HRMS.Web.ViewModels.OfficialHolidaysIndexViewModel
+@{
+    ViewData["Title"] = "الاجازات الرسمية";
+}
+
+<div dir="rtl">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="border rounded-3 p-4 mx-auto" style="max-width: 900px;">
+
+        <h4 class="text-center fw-bold mb-4">الاجازات الرسمية</h4>
+
+        <form asp-controller="OfficialHolidays" asp-action="Save" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Form.Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row g-3 align-items-end mb-2">
+                <!-- الاسم - يمين -->
+                <div class="col-md-5 order-md-3">
+                    <label asp-for="Form.Name" class="form-label fw-bold"></label>
+                    <input asp-for="Form.Name" class="form-control" placeholder="اسم الاجازة" />
+                </div>
+
+                <!-- التاريخ - النص -->
+                <div class="col-md-4 order-md-2">
+                    <label asp-for="Form.Date" class="form-label fw-bold"></label>
+                    <input asp-for="Form.Date" type="date" class="form-control" />
+                </div>
+
+                <!-- زرار الاضافة - شمال -->
+                <div class="col-md-3 order-md-1">
+                    <button type="submit" id="submitBtn" class="btn w-100 fw-bold"
+                            style="background-color:#ff6b81; color:white;">
+                        اضافة
+                    </button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-5 offset-md-7">
+                    <span asp-validation-for="Form.Name" class="text-danger d-block"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 offset-md-3">
+                    <span asp-validation-for="Form.Date" class="text-danger d-block"></span>
+                </div>
+            </div>
+        </form>
+
+        <table class="table table-bordered table-hover mt-4 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>الاسم</th>
+                    <th>التاريخ</th>
+                    <th class="text-center">العمليات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var holiday in Model.Holidays)
+                {
+                    <tr>
+                        <td>@holiday.Name</td>
+                        <td>@holiday.Date.ToString("yyyy/MM/dd")</td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-link text-primary p-1 edit-btn"
+                                    title="تعديل"
+                                    data-id="@holiday.Id" data-name="@holiday.Name"
+                                    data-date="@holiday.Date.ToString("yyyy-MM-dd")">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+
+                            <form asp-controller="OfficialHolidays" asp-action="Delete" asp-route-id="@holiday.Id"
+                                  method="post" class="d-inline"
+                                  onsubmit="return confirm('هل انت متأكد من حذف هذه الاجازة؟');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-link text-danger p-1" title="حذف">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.querySelectorAll('.edit-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.getElementById('Form_Id').value = btn.dataset.id;
+                document.getElementById('Form_Name').value = btn.dataset.name;
+                document.getElementById('Form_Date').value = btn.dataset.date;
+                document.getElementById('submitBtn').textContent = 'حفظ التعديل';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+    </script>
+}

@@ -11,19 +11,24 @@ namespace HRMS.Domain.Repositories.Classes
     {
         private readonly ApplicationDbContext _context;
 
+        #region Private Fields
         private IUserRepository? _users;
         private IEmployeeRepository? _employees;
         private IRoleRepository? _roles;
         private IGeneralSettingsRepository? _generalSettings;
+        private IOfficialHolidayRepository? _officialHolidays; 
+        #endregion
 
         public UnitOfWork(ApplicationDbContext context) => _context = context;
 
+        #region Public Properties
         public IUserRepository Users => _users ??= new UserRepository(_context);
         public IEmployeeRepository Employees => _employees ??= new EmployeeRepository(_context);
         public IRoleRepository Roles => _roles ??= new RoleRepository(_context);
         public IGeneralSettingsRepository GeneralSettings => _generalSettings ??= new GeneralSettingsRepository(_context);
-
-        public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
+        public IOfficialHolidayRepository OfficialHolidays => _officialHolidays ??= new OfficialHolidayRepository(_context);
+        public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync(); 
+        #endregion
 
         public void Dispose() => _context.Dispose();
     }

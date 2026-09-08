@@ -14,6 +14,7 @@ namespace HRMS.Application
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IGeneralSettingsService, GeneralSettingsService>();
+            services.AddScoped<IOfficialHolidayService, OfficialHolidayService>();
 
             // AutoMapper 13+ بيشتغل بس بالـ Action overload، فبنقوله يدوّر
             // على كل الـ Profiles الموجودة في نفس الـ Assembly بتاع HRMS.Application
