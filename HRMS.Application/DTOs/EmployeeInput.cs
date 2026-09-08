@@ -19,5 +19,7 @@ namespace HRMS.Application.DTOs
         public decimal Salary { get; set; }
         public TimeSpan AttendanceTime { get; set; }
         public TimeSpan DepartureTime { get; set; }
+
+        public int? DepartmentId { get; set; }
     }
 }

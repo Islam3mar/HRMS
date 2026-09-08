@@ -1,2 +1,27 @@
 ﻿<script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
 <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.js"></script>
+<script>
+	// Arabic validation messages override
+	(function() {
+		if (window.jQuery && window.jQuery.validator) {
+			var m = window.jQuery.validator.messages;
+			m.required = "من فضلك هذا الحقل مطلوب";
+			m.remote = "من فضلك صحح هذا الحقل";
+			m.email = "من فضلك ادخل بريد إلكتروني صحيح";
+			m.url = "من فضلك ادخل رابط صحيح";
+			m.date = "من فضلك ادخل تاريخ صحيح";
+			m.dateISO = "من فضلك ادخل تاريخ صحيح (YYYY-MM-DD)";
+			m.number = "من فضلك ادخل رقم صحيح";
+			m.digits = "من فضلك ادخل أرقام فقط";
+			m.creditcard = "من فضلك ادخل رقم بطاقة ائتمان صحيح";
+			m.equalTo = "من فضلك ادخل نفس القيمة مرة أخرى";
+			m.extension = "قيمة الملف هذه غير مسموح بها";
+			m.maxlength = window.jQuery.validator.format("الحد الأقصى لعدد الحروف هو {0}");
+			m.minlength = window.jQuery.validator.format("الحد الأدنى لعدد الحروف هو {0}");
+			m.rangelength = window.jQuery.validator.format("الطول المطلوب بين {0} و {1} أحرف");
+			m.range = window.jQuery.validator.format("الرجاء إدخال قيمة بين {0} و {1}");
+			m.max = window.jQuery.validator.format("الحد الأقصى المسموح به هو {0}");
+			m.min = window.jQuery.validator.format("الحد الأدنى المسموح به هو {0}");
+		}
+	})();
+</script>

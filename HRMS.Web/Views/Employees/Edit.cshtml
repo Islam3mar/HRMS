@@ -43,6 +43,13 @@
                             <input asp-for="DepartureTime" class="form-control" />
                             <span asp-validation-for="DepartureTime" class="text-danger"></span>
                         </div>
+                        <div class="mb-3">
+                            <label asp-for="DepartmentId" class="form-label"></label>
+                            <select asp-for="DepartmentId" asp-items="Model.DepartmentOptions" class="form-select">
+                                <option value="">-- بدون قسم --</option>
+                            </select>
+                            <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                        </div>
                     </div>
 
                     <div class="col-md-6">

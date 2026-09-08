@@ -11,6 +11,8 @@ namespace HRMS.Domain.Interfaces
         IRoleRepository Roles { get; }
         IGeneralSettingsRepository GeneralSettings { get; }
         IOfficialHolidayRepository OfficialHolidays { get; }
+        IDepartmentRepository Departments { get; }
+        IAttendanceRecordRepository AttendanceRecords { get; }
 
         Task<int> SaveChangesAsync();
     }

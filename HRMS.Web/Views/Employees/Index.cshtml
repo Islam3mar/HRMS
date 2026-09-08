@@ -18,6 +18,7 @@
         <thead>
             <tr>
                 <th>اسم الموظف</th>
+                <th>القسم</th>
                 <th>رقم تليفون</th>
                 <th>الرقم القومي</th>
                 <th>تاريخ التعاقد</th>
@@ -30,6 +31,7 @@
             {
                 <tr>
                     <td>@emp.FullName</td>
+                    <td>@(emp.Department?.Name ?? "-")</td>
                     <td>@emp.PhoneNumber</td>
                     <td>@emp.NationalId</td>
                     <td>@emp.ContractDate.ToString("yyyy/MM/dd")</td>
