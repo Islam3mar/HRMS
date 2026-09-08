@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using HRMS.Domain.Common;
 
 namespace HRMS.Domain.Entities
 {

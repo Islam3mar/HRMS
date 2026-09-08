@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using HRMS.Domain.Common;
 using HRMS.Domain.Enums;
 
 namespace HRMS.Domain.Entities

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using HRMS.Domain.Entities;
+using HRMS.Domain.Common;
 using HRMS.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
