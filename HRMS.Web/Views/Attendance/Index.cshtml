@@ -1,0 +1,299 @@
+﻿@model HRMS.Web.ViewModels.AttendanceIndexViewModel
+@{
+    ViewData["Title"] = "تسجيل الحضور و الانصراف للموظفين";
+}
+
+<div dir="rtl">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+    @if (TempData["ImportErrors"] != null)
+    {
+        <div class="alert alert-warning">أخطاء الاستيراد: @TempData["ImportErrors"]</div>
+    }
+
+    <h4 class="text-center fw-bold mb-4">تسجيل الحضور و الانصراف للموظفين</h4>
+
+    <!-- أزرار Excel + اضافة -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </button>
+        </div>
+        <button type="button" class="btn fw-bold" style="background-color:#ff6b81; color:white;"
+                data-bs-toggle="modal" data-bs-target="#attendanceModal" onclick="openAddModal()">
+            اضافة
+        </button>
+    </div>
+
+    <!-- شريط البحث والفلترة -->
+    <form asp-controller="Attendance" asp-action="Index" method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-md-4">
+            <label class="form-label">بحث باسم الموظف او القسم</label>
+            <input asp-for="Search.EmployeeName" class="form-control" placeholder="بحث باسم الموظف او القسم" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">من</label>
+            <input asp-for="Search.FromDate" type="date" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">الى</label>
+            <input asp-for="Search.ToDate" type="date" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-outline-secondary w-100">
+                <i class="bi bi-search"></i> عرض
+            </button>
+        </div>
+    </form>
+
+    <!-- طباعة / تصدير -->
+    <div class="mb-2">
+        <a class="btn btn-sm btn-outline-dark"
+           asp-action="Print"
+           asp-route-EmployeeName="@Model.Search.EmployeeName"
+           asp-route-FromDate="@Model.Search.FromDate"
+           asp-route-ToDate="@Model.Search.ToDate"
+           target="_blank" title="طباعة">
+            <i class="bi bi-printer"></i>
+        </a>
+        <a class="btn btn-sm btn-outline-dark"
+           asp-action="ExportExcel"
+           asp-route-EmployeeName="@Model.Search.EmployeeName"
+           asp-route-FromDate="@Model.Search.FromDate"
+           asp-route-ToDate="@Model.Search.ToDate"
+           title="تصدير">
+            <i class="bi bi-download"></i>
+        </a>
+    </div>
+
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th class="text-center">العمليات</th>
+                <th>التاريخ</th>
+                <th>وقت الانصراف</th>
+                <th>وقت الحضور</th>
+                <th>اسم الموظف</th>
+                <th>القسم</th>
+                <th class="text-center">م</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                var rowNumber = (Model.Page - 1) * Model.PageSize + 1;
+            }
+            @if (!Model.Records.Any())
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">لا توجد سجلات مطابقة لبحثك</td>
+                </tr>
+            }
+            @foreach (var record in Model.Records)
+            {
+                <tr>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-link text-primary p-1 edit-btn"
+                                title="تعديل"
+                                data-id="@record.Id"
+                                data-employeeid="@record.EmployeeId"
+                                data-date="@record.Date.ToString("yyyy-MM-dd")"
+                                data-checkin="@record.CheckInTime.ToString(@"hh\:mm")"
+                                data-checkout="@record.CheckOutTime.ToString(@"hh\:mm")">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <button type="button" class="btn btn-link text-danger p-1 delete-btn"
+                                title="حذف" data-id="@record.Id">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </td>
+                    <td>@record.Date.ToString("dddd, yyyy/MM/dd", new System.Globalization.CultureInfo("ar-EG"))</td>
+                    <td>@record.CheckOutTime.ToString(@"hh\:mm")</td>
+                    <td>@record.CheckInTime.ToString(@"hh\:mm")</td>
+                    <td>@record.Employee.FullName</td>
+                    <td>@(record.Employee.Department?.Name ?? "-")</td>
+                    <td class="text-center">@(rowNumber++)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav>
+            <ul class="pagination justify-content-center">
+                @for (int p = 1; p <= Model.TotalPages; p++)
+                {
+                    <li class="page-item @(p == Model.Page ? "active" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-EmployeeName="@Model.Search.EmployeeName"
+                           asp-route-FromDate="@Model.Search.FromDate"
+                           asp-route-ToDate="@Model.Search.ToDate"
+                           asp-route-Page="@p">@p</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>
+
+<!-- Modal اضافة / تعديل سجل حضور -->
+<div class="modal fade" id="attendanceModal" tabindex="-1">
+    <div class="modal-dialog" dir="rtl">
+        <div class="modal-content">
+            <form id="attendanceForm" asp-controller="Attendance" asp-action="Save" method="post">
+                @Html.AntiForgeryToken()
+                <input asp-for="Form.Id" type="hidden" />
+                <input type="hidden" name="search.EmployeeName" value="@Model.Search.EmployeeName" />
+                <input type="hidden" name="search.FromDate" value="@Model.Search.FromDate?.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="search.ToDate" value="@Model.Search.ToDate?.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="search.Page" value="@Model.Page" />
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="attendanceModalTitle">اضافة سجل حضور وانصراف</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">اسم الموظف</label>
+                        <select asp-for="Form.EmployeeId" id="Form_EmployeeId" class="form-select" asp-items="Model.EmployeeOptions">
+                            <option value="">-- اختر الموظف --</option>
+                        </select>
+                        <span asp-validation-for="Form.EmployeeId" class="text-danger d-block"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">التاريخ</label>
+                        <input asp-for="Form.Date" id="Form_Date" class="form-control" />
+                        <span asp-validation-for="Form.Date" class="text-danger d-block"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">وقت الحضور</label>
+                        <input asp-for="Form.CheckInTime" id="Form_CheckInTime" class="form-control" />
+                        <span asp-validation-for="Form.CheckInTime" class="text-danger d-block"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">وقت الانصراف</label>
+                        <input asp-for="Form.CheckOutTime" id="Form_CheckOutTime" class="form-control" />
+                        <span asp-validation-for="Form.CheckOutTime" class="text-danger d-block"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn fw-bold" style="background-color:#ff6b81; color:white;">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal تأكيد الحذف -->
+<div class="modal fade" id="deleteAttendanceModal" tabindex="-1">
+    <div class="modal-dialog" dir="rtl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تأكيد الحذف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">هل أنت متأكد من حذف سجل الحضور والانصراف هذا؟</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <form id="deleteAttendanceForm" asp-controller="Attendance" asp-action="Delete" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteId" />
+                    <input type="hidden" name="search.EmployeeName" value="@Model.Search.EmployeeName" />
+                    <input type="hidden" name="search.FromDate" value="@Model.Search.FromDate?.ToString("yyyy-MM-dd")" />
+                    <input type="hidden" name="search.ToDate" value="@Model.Search.ToDate?.ToString("yyyy-MM-dd")" />
+                    <input type="hidden" name="search.Page" value="@Model.Page" />
+                    <button type="submit" class="btn btn-danger">حذف</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal استيراد Excel -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog" dir="rtl">
+        <div class="modal-content">
+            <form asp-controller="Attendance" asp-action="Import" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="search.EmployeeName" value="@Model.Search.EmployeeName" />
+                <input type="hidden" name="search.FromDate" value="@Model.Search.FromDate?.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="search.ToDate" value="@Model.Search.ToDate?.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="search.Page" value="@Model.Page" />
+
+                <div class="modal-header">
+                    <h5 class="modal-title">استيراد بيانات من Excel</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">
+                        ترتيب الأعمدة المطلوب فى الملف: <strong>الرقم القومي</strong> | <strong>التاريخ</strong> | <strong>وقت الحضور</strong> | <strong>وقت الانصراف</strong>
+                        (الصف الأول عناوين الأعمدة).
+                    </p>
+                    <input type="file" name="excelFile" class="form-control" accept=".xlsx" required />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-success">استيراد</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        function openAddModal() {
+            document.getElementById('attendanceModalTitle').textContent = 'اضافة سجل حضور وانصراف';
+            document.getElementById('Form_Id').value = 0;
+            document.getElementById('Form_EmployeeId').value = '';
+            document.getElementById('Form_Date').value = '';
+            document.getElementById('Form_CheckInTime').value = '';
+            document.getElementById('Form_CheckOutTime').value = '';
+        }
+
+        document.querySelectorAll('.edit-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.getElementById('attendanceModalTitle').textContent = 'تعديل سجل حضور وانصراف';
+                document.getElementById('Form_Id').value = btn.dataset.id;
+                document.getElementById('Form_EmployeeId').value = btn.dataset.employeeid;
+                document.getElementById('Form_Date').value = btn.dataset.date;
+                document.getElementById('Form_CheckInTime').value = btn.dataset.checkin;
+                document.getElementById('Form_CheckOutTime').value = btn.dataset.checkout;
+
+                var modal = new bootstrap.Modal(document.getElementById('attendanceModal'));
+                modal.show();
+            });
+        });
+
+        document.querySelectorAll('.delete-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.getElementById('deleteId').value = btn.dataset.id;
+                var modal = new bootstrap.Modal(document.getElementById('deleteAttendanceModal'));
+                modal.show();
+            });
+        });
+    </script>
+    @if (ViewBag.ShowAttendanceModal == true)
+    {
+        <script>
+            // open modal when server returned validation errors
+            var modal = new bootstrap.Modal(document.getElementById('attendanceModal'));
+            modal.show();
+        </script>
+    }
+}

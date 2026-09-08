@@ -1,0 +1,93 @@
+﻿@model HRMS.Web.ViewModels.DepartmentsIndexViewModel
+@{
+    ViewData["Title"] = "الأقسام";
+}
+
+<div dir="rtl">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="border rounded-3 p-4 mx-auto" style="max-width: 700px;">
+
+        <h4 class="text-center fw-bold mb-4">الأقسام</h4>
+
+        <form asp-controller="Departments" asp-action="Save" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Form.Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row g-3 align-items-end mb-2">
+                <!-- اسم القسم - يمين -->
+                <div class="col-md-8 order-md-2">
+                    <label asp-for="Form.Name" class="form-label fw-bold"></label>
+                    <input asp-for="Form.Name" class="form-control" placeholder="اسم القسم" />
+                </div>
+
+                <!-- زرار الاضافة - شمال -->
+                <div class="col-md-4 order-md-1">
+                    <button type="submit" id="submitBtn" class="btn w-100 fw-bold"
+                            style="background-color:#ff6b81; color:white;">
+                        اضافة
+                    </button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8 offset-md-4">
+                    <span asp-validation-for="Form.Name" class="text-danger d-block"></span>
+                </div>
+            </div>
+        </form>
+
+        <table class="table table-bordered table-hover mt-4 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>اسم القسم</th>
+                    <th class="text-center">العمليات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var department in Model.Departments)
+                {
+                    <tr>
+                        <td>@department.Name</td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-link text-primary p-1 edit-btn"
+                                    title="تعديل"
+                                    data-id="@department.Id" data-name="@department.Name">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+
+                            <form asp-controller="Departments" asp-action="Delete" asp-route-id="@department.Id"
+                                  method="post" class="d-inline"
+                                  onsubmit="return confirm('هل انت متأكد من حذف هذا القسم؟');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-link text-danger p-1" title="حذف">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.querySelectorAll('.edit-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.getElementById('Form_Id').value = btn.dataset.id;
+                document.getElementById('Form_Name').value = btn.dataset.name;
+                document.getElementById('submitBtn').textContent = 'حفظ التعديل';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+    </script>
+}

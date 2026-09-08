@@ -12,10 +12,12 @@ namespace HRMS.Web.Controllers
     public class EmployeesController : Controller
     {
         private readonly IEmployeeService _employeeService;
+        private readonly IDepartmentService _departmentService;   // جديد
 
-        public EmployeesController(IEmployeeService employeeService)
+        public EmployeesController(IEmployeeService employeeService, IDepartmentService departmentService)
         {
             _employeeService = employeeService;
+            _departmentService = departmentService;
         }
 
         public async Task<IActionResult> Index()
@@ -24,7 +26,7 @@ namespace HRMS.Web.Controllers
             return View(employees);
         }
 
-        public IActionResult Create() => View(BuildEmptyForm());
+        public async Task<IActionResult> Create() => View(await BuildEmptyForm());
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -32,7 +34,7 @@ namespace HRMS.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                model.GenderOptions = GetGenderOptions();
+                await FillOptions(model);
                 return View(model);
             }
 
@@ -41,7 +43,7 @@ namespace HRMS.Web.Controllers
             if (!result.Success)
             {
                 AddErrorsToModelState(result);
-                model.GenderOptions = GetGenderOptions();
+                await FillOptions(model);
                 return View(model);
             }
 
@@ -68,9 +70,10 @@ namespace HRMS.Web.Controllers
                 Salary = employee.Salary,
                 AttendanceTime = employee.AttendanceTime,
                 DepartureTime = employee.DepartureTime,
-                GenderOptions = GetGenderOptions()
+                DepartmentId = employee.DepartmentId
             };
 
+            await FillOptions(model);
             return View(model);
         }
 
@@ -80,7 +83,7 @@ namespace HRMS.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                model.GenderOptions = GetGenderOptions();
+                await FillOptions(model);
                 return View(model);
             }
 
@@ -89,7 +92,7 @@ namespace HRMS.Web.Controllers
             if (!result.Success)
             {
                 AddErrorsToModelState(result);
-                model.GenderOptions = GetGenderOptions();
+                await FillOptions(model);
                 return View(model);
             }
 
@@ -108,7 +111,18 @@ namespace HRMS.Web.Controllers
         }
 
         // ---------- Helpers ----------
-        private EmployeeFormViewModel BuildEmptyForm() => new() { GenderOptions = GetGenderOptions() };
+        private async Task<EmployeeFormViewModel> BuildEmptyForm()
+        {
+            var model = new EmployeeFormViewModel();
+            await FillOptions(model);
+            return model;
+        }
+
+        private async Task FillOptions(EmployeeFormViewModel model)
+        {
+            model.GenderOptions = GetGenderOptions();
+            model.DepartmentOptions = await GetDepartmentOptionsAsync();
+        }
 
         private static List<SelectListItem> GetGenderOptions() =>
             Enum.GetValues<Gender>().Select(g => new SelectListItem
@@ -116,6 +130,16 @@ namespace HRMS.Web.Controllers
                 Value = ((int)g).ToString(),
                 Text = g.ToArabicName()
             }).ToList();
+
+        private async Task<List<SelectListItem>> GetDepartmentOptionsAsync()
+        {
+            var departments = await _departmentService.GetAllAsync();
+            return departments.Select(d => new SelectListItem
+            {
+                Value = d.Id.ToString(),
+                Text = d.Name
+            }).ToList();
+        }
 
         private static EmployeeInput MapToInput(EmployeeFormViewModel model) => new()
         {
@@ -129,7 +153,8 @@ namespace HRMS.Web.Controllers
             ContractDate = model.ContractDate,
             Salary = model.Salary,
             AttendanceTime = model.AttendanceTime,
-            DepartureTime = model.DepartureTime
+            DepartureTime = model.DepartureTime,
+            DepartmentId = model.DepartmentId
         };
 
         private void AddErrorsToModelState(EmployeeResult result)

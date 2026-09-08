@@ -1,0 +1,84 @@
+﻿@model IEnumerable<HRMS.Domain.Entities.AttendanceRecord>
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>تقرير الحضور و الانصراف</title>
+    <style>
+            body {
+                font-family: Arial, Tahoma, sans-serif;
+                padding: 20px;
+            }
+
+            h3 {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th, td {
+                border: 1px solid #999;
+                padding: 8px;
+                text-align: center;
+            }
+
+            th {
+                background-color: #f2f2f2;
+            }
+
+            .print-toolbar {
+                text-align: center;
+                margin-bottom: 15px;
+            }
+
+            @@media print {
+                .print-toolbar {
+                    display: none;
+                }
+            }
+    </style>
+</head>
+<body>
+    <div class="print-toolbar">
+        <button onclick="window.print()">طباعة</button>
+    </div>
+
+    <h3>تقرير الحضور و الانصراف للموظفين</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>م</th>
+                <th>القسم</th>
+                <th>اسم الموظف</th>
+                <th>وقت الحضور</th>
+                <th>وقت الانصراف</th>
+                <th>التاريخ</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                var i = 1;
+            }
+            @foreach (var record in Model)
+            {
+                <tr>
+                    <td>@(i++)</td>
+                    <td>@(record.Employee.Department?.Name ?? "-")</td>
+                    <td>@record.Employee.FullName</td>
+                    <td>@record.CheckInTime.ToString(@"hh\:mm")</td>
+                    <td>@record.CheckOutTime.ToString(@"hh\:mm")</td>
+                    <td>@record.Date.ToString("yyyy/MM/dd")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</body>
+</html>

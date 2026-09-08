@@ -64,6 +64,10 @@ namespace HRMS.Web.ViewModels
         [DisplayFormat(DataFormatString = @"{0:hh\:mm}", ApplyFormatInEditMode = true)]
         public TimeSpan DepartureTime { get; set; } = new TimeSpan(16, 0, 0);
 
+        [Display(Name = "القسم")]
+        public int? DepartmentId { get; set; }   // جديد - اختياري
+
         public List<SelectListItem> GenderOptions { get; set; } = new();
+        public List<SelectListItem> DepartmentOptions { get; set; } = new();   // جديد
     }
 }
