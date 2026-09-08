@@ -1,0 +1,83 @@
+﻿@model HRMS.Web.ViewModels.GeneralSettingsFormViewModel
+@{
+    ViewData["Title"] = "اعدادات عامة";
+}
+
+<div dir="rtl">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="card">
+        <div class="card-header text-center fw-bold">اعدادات عامة</div>
+        <div class="card-body">
+            <form asp-controller="Settings" asp-action="Save" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6 offset-md-6">
+                        <label asp-for="AdditionRatePerHour" class="form-label"></label>
+                        <input asp-for="AdditionRatePerHour" class="form-control settings-field" placeholder="2 ساعة" readonly="@Model.IsExisting" />
+                        <span asp-validation-for="AdditionRatePerHour" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 offset-md-6">
+                        <label asp-for="DeductionRatePerHour" class="form-label"></label>
+                        <input asp-for="DeductionRatePerHour" class="form-control settings-field" placeholder="2 ساعة" readonly="@Model.IsExisting" />
+                        <span asp-validation-for="DeductionRatePerHour" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-3">الاجازات الاسبوعية</h6>
+
+                <div class="row mb-3">
+                    <div class="col-md-6 offset-md-6">
+                        <label asp-for="WeeklyHoliday1" class="form-label"></label>
+                        <select asp-for="WeeklyHoliday1" asp-items="Model.DayOptions" class="form-select settings-field" disabled="@Model.IsExisting"></select>
+                        <span asp-validation-for="WeeklyHoliday1" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 offset-md-6">
+                        <label asp-for="WeeklyHoliday2" class="form-label"></label>
+                        <select asp-for="WeeklyHoliday2" asp-items="Model.DayOptions" class="form-select settings-field" disabled="@Model.IsExisting"></select>
+                        <span asp-validation-for="WeeklyHoliday2" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="text-start">
+                    @if (Model.IsExisting)
+                    {
+                        <button type="button" id="editBtn" class="btn btn-outline-secondary">تعديل</button>
+                    }
+                    <button type="submit" id="saveBtn" class="btn" style="background-color:#ff6b81; color:white;" disabled="@Model.IsExisting">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        var editBtn = document.getElementById('editBtn');
+        if (editBtn) {
+            editBtn.addEventListener('click', function() {
+                // قاعدة 3: Pop Up لتاكيد التعديل قبل فتح الحقول
+                if (confirm('هل انت متأكد من التعديل على الاعدادات؟')) {
+                    document.querySelectorAll('.settings-field').forEach(function(el) {
+                        el.removeAttribute('readonly');
+                        el.removeAttribute('disabled');
+                    });
+                    document.getElementById('saveBtn').removeAttribute('disabled');
+                }
+            });
+        }
+    </script>
+}

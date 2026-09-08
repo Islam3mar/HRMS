@@ -21,7 +21,8 @@ namespace HRMS.Infrastructure.Data
         public DbSet<User> Users => Set<User>();
         public DbSet<Role> Roles => Set<Role>();
         public DbSet<Employee> Employees => Set<Employee>();
-        public DbSet<Department> Departments => Set<Department>(); 
+        public DbSet<Department> Departments => Set<Department>();
+        public DbSet<GeneralSettings> GeneralSettings => Set<GeneralSettings>();
         #endregion
     }
 }
