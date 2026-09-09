@@ -4,7 +4,9 @@ using System.Text;
 using HRMS.Domain.Common;
 using HRMS.Domain.Entities;
 using HRMS.Domain.Interfaces;
+using HRMS.Domain.Specifications.Attendance;
 using HRMS.Infrastructure.Data;
+using HRMS.Infrastructure.Specifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace HRMS.Infrastructure.Repositories
@@ -59,28 +61,12 @@ namespace HRMS.Infrastructure.Repositories
         }
 
         // ---------- Helper ----------
+        // بدل ما كان بيبني الـ Where يدويًا، دلوقتي بيستخدم AttendanceSearchSpecification
+        // (نفس الشرط بالظبط، بس دلوقتي في كلاس قابل لإعادة الاستخدام والاختبار لوحده)
         private IQueryable<AttendanceRecord> BuildFilteredQuery(AttendanceSearchFilter filter)
         {
-            var query = Query
-                .Include(a => a.Employee).ThenInclude(e => e.Department)
-                .AsNoTracking()
-                .AsQueryable();
-
-            // مربع بحث واحد بيدور باسم الموظف او باسم القسم (زي التصميم)
-            if (!string.IsNullOrWhiteSpace(filter.EmployeeName))
-                query = query.Where(a => a.Employee.FullName.Contains(filter.EmployeeName) ||
-                                          (a.Employee.Department != null && a.Employee.Department.Name.Contains(filter.EmployeeName)));
-
-            if (filter.DepartmentId.HasValue)
-                query = query.Where(a => a.Employee.DepartmentId == filter.DepartmentId.Value);
-
-            if (filter.FromDate.HasValue)
-                query = query.Where(a => a.Date.Date >= filter.FromDate.Value.Date);
-
-            if (filter.ToDate.HasValue)
-                query = query.Where(a => a.Date.Date <= filter.ToDate.Value.Date);
-
-            return query;
+            var spec = new AttendanceSearchSpecification(filter);
+            return SpecificationEvaluator<AttendanceRecord>.GetQuery(Query.AsNoTracking(), spec);
         }
     }
 }
