@@ -13,7 +13,7 @@ namespace HRMS.Domain.Interfaces
         IOfficialHolidayRepository OfficialHolidays { get; }
         IDepartmentRepository Departments { get; }
         IAttendanceRecordRepository AttendanceRecords { get; }
-
+        IPayrollRecordRepository PayrollRecords { get; }
         Task<int> SaveChangesAsync();
     }
 }

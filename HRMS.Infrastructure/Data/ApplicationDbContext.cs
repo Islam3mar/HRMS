@@ -25,6 +25,7 @@ namespace HRMS.Infrastructure.Data
         public DbSet<GeneralSettings> GeneralSettings => Set<GeneralSettings>();
         public DbSet<OfficialHoliday> OfficialHolidays => Set<OfficialHoliday>();
         public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
+        public DbSet<PayrollRecord> PayrollRecords => Set<PayrollRecord>();
         #endregion
     }
 }

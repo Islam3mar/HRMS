@@ -1,0 +1,102 @@
+﻿@model HRMS.Web.ViewModels.PayrollIndexViewModel
+@{
+    ViewData["Title"] = "روانب الموظفين";
+}
+
+<div dir="rtl">
+    <h4 class="text-center fw-bold mb-4">رواتب الموظفين</h4>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    @if (Model.SearchError != null)
+    {
+        <div class="alert alert-warning">@Model.SearchError</div>
+    }
+    @if (Model.YearError != null)
+    {
+        <div class="alert alert-warning">@Model.YearError</div>
+    }
+
+    <!-- شريط البحث والفلترة -->
+    <form asp-controller="Payroll" asp-action="Index" method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-md-6">
+            <label class="form-label">بحث باسم الموظف</label>
+            <input asp-for="Search.EmployeeName" class="form-control" placeholder="بحث باسم الموظف" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">شهر</label>
+            <select asp-for="Search.Month" asp-items="Model.MonthOptions" class="form-select"></select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">سنة</label>
+            <select asp-for="Search.Year" asp-items="Model.YearOptions" class="form-select"></select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-outline-secondary w-100">
+                <i class="bi bi-search"></i> بحث
+            </button>
+        </div>
+    </form>
+
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th class="text-center">العمليات</th>
+                <th>الصافى</th>
+                <th>اجمالى الخصم</th>
+                <th>اجمالى الاضافى</th>
+                <th>الخصم بالساعات</th>
+                <th>الاضافى بالساعات</th>
+                <th>عدد ايام الغياب</th>
+                <th>عدد ايام الحضور</th>
+                <th>الراتب الاساسى</th>
+                <th>القسم</th>
+                <th>اسم الموظف</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Rows.Any())
+            {
+                <tr>
+                    <td colspan="11" class="text-center text-muted py-4">لا توجد بيانات لعرضها</td>
+                </tr>
+            }
+            @foreach (var row in Model.Rows)
+            {
+                <tr>
+                    <td class="text-center">
+                        <a class="btn btn-link text-dark p-1"
+                           asp-action="Edit"
+                           asp-route-employeeId="@row.EmployeeId"
+                           asp-route-month="@row.Month"
+                           asp-route-year="@row.Year"
+                           title="تعديل الراتب">
+                            <i class="bi bi-pencil-fill"></i>
+                        </a>
+                        <a class="btn btn-link text-dark p-1"
+                           asp-action="Print"
+                           asp-route-employeeId="@row.EmployeeId"
+                           asp-route-month="@row.Month"
+                           asp-route-year="@row.Year"
+                           target="_blank" title="طباعة مفردات الراتب">
+                            <i class="bi bi-printer-fill"></i>
+                        </a>
+                    </td>
+                    <td class="fw-bold">@row.NetSalary.ToString("N2")</td>
+                    <td>@row.TotalDeductionAmount.ToString("N2")</td>
+                    <td>@row.TotalOvertimeAmount.ToString("N2")</td>
+                    <td>@row.DeductionHours.ToString("N2")</td>
+                    <td>@row.OvertimeHours.ToString("N2")</td>
+                    <td>@row.AbsenceDaysCount</td>
+                    <td>@row.AttendanceDaysCount</td>
+                    <td>@row.BaseSalary.ToString("N2")</td>
+                    <td>@row.DepartmentName</td>
+                    <td>@row.EmployeeName</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

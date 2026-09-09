@@ -1,8 +1,124 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model HRMS.Web.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "الرئيسية";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div dir="rtl">
+    <h4 class="fw-bold mb-4">مرحباً @User.Identity?.Name</h4>
+
+    @if (!Model.IsGeneralSettingsConfigured)
+    {
+        <div class="alert alert-warning d-flex justify-content-between align-items-center">
+            <span>لسه ماتمش ضبط الاعدادات العامة (الاضافة / الخصم / الاجازات الاسبوعية)</span>
+            <a asp-controller="Settings" asp-action="Index" class="btn btn-sm btn-outline-dark">اضبطها الآن</a>
+        </div>
+    }
+
+    <!-- كروت الاحصائيات -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="fs-2 fw-bold" style="color:#1c6ea4;">@Model.TotalEmployees</div>
+                    <div class="text-muted">اجمالى الموظفين</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="fs-2 fw-bold" style="color:#1c6ea4;">@Model.TotalDepartments</div>
+                    <div class="text-muted">اجمالى الاقسام</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="fs-2 fw-bold text-success">@Model.PresentTodayCount</div>
+                    <div class="text-muted">حاضرين النهاردة</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                @if (Model.IsTodayHoliday)
+                {
+                    <div class="card-body">
+                        <div class="fs-5 fw-bold text-info">اجازة</div>
+                        <div class="text-muted">@Model.TodayHolidayReason</div>
+                    </div>
+                }
+                else
+                {
+                    <div class="card-body">
+                        <div class="fs-2 fw-bold text-danger">@Model.AbsentTodayCount</div>
+                        <div class="text-muted">غائبين النهاردة</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- الاجازات القادمة -->
+        <div class="col-md-5">
+            <div class="card h-100">
+                <div class="card-header fw-bold">اقرب الاجازات الرسمية</div>
+                <div class="card-body">
+                    @if (!Model.UpcomingHolidays.Any())
+                    {
+                        <p class="text-muted mb-0">لا توجد اجازات رسمية قادمة مسجلة</p>
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var holiday in Model.UpcomingHolidays)
+                            {
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>@holiday.Name</span>
+                                    <span class="text-muted">@holiday.Date.ToString("yyyy/MM/dd")</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- روابط سريعة -->
+        <div class="col-md-7">
+            <div class="card h-100">
+                <div class="card-header fw-bold">روابط سريعة</div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <a asp-controller="Employees" asp-action="Index" class="btn btn-outline-primary w-100">الموظفين</a>
+                        </div>
+                        <div class="col-6">
+                            <a asp-controller="Attendance" asp-action="Index" class="btn btn-outline-primary w-100">الحضور والانصراف</a>
+                        </div>
+                        <div class="col-6">
+                            <a asp-controller="Payroll" asp-action="Index" class="btn btn-outline-primary w-100">رواتب الموظفين</a>
+                        </div>
+                        <div class="col-6">
+                            <a asp-controller="OfficialHolidays" asp-action="Index" class="btn btn-outline-primary w-100">الاجازات الرسمية</a>
+                        </div>
+                        <div class="col-6">
+                            <a asp-controller="Departments" asp-action="Index" class="btn btn-outline-secondary w-100">الاقسام</a>
+                        </div>
+                        <div class="col-6">
+                            <a asp-controller="Settings" asp-action="Index" class="btn btn-outline-secondary w-100">الاعدادات العامة</a>
+                        </div>
+                        <div class="col-6">
+                            <a asp-controller="Users" asp-action="Index" class="btn btn-outline-secondary w-100">مستخدمين النظام</a>
+                        </div>
+                        <div class="col-6">
+                            <a asp-controller="Roles" asp-action="Index" class="btn btn-outline-secondary w-100">مجموعات المستخدمين</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

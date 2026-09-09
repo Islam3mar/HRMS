@@ -22,43 +22,90 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="Index">
+                                Home
+                            </a>
                         </li>
-                        @* <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li> *@
+
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Roles" asp-action="Index">مجموعات المستخدمين</a>
+                                <a class="nav-link text-dark"
+                                   asp-controller="Employees"
+                                   asp-action="Index">
+                                    الموظفين
+                                </a>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Users" asp-action="Index">مستخدمين النظام</a>
+                                <a class="nav-link text-dark"
+                                   asp-controller="Departments"
+                                   asp-action="Index">
+                                    الأقسام
+                                </a>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Employees" asp-action="Index">الموظفين</a>
+                                <a class="nav-link text-dark"
+                                   asp-controller="Attendance"
+                                   asp-action="Index">
+                                    الحضور والانصراف
+                                </a>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Departments" asp-action="Index">الأقسام</a>
+                                <a class="nav-link text-dark"
+                                   asp-controller="Payroll"
+                                   asp-action="Index">
+                                    رواتب الموظفين
+                                </a>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Attendance" asp-action="Index">الحضور و الانصراف</a>
+                                <a class="nav-link text-dark"
+                                   asp-controller="OfficialHolidays"
+                                   asp-action="Index">
+                                    الإجازات الرسمية
+                                </a>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Settings" asp-action="Index">الاعدادات العامة</a>
+                                <a class="nav-link text-dark"
+                                   asp-controller="Users"
+                                   asp-action="Index">
+                                    مستخدمين النظام
+                                </a>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="OfficialHolidays" asp-action="Index">الاجازات الرسمية</a>
+                                <a class="nav-link text-dark"
+                                   asp-controller="Roles"
+                                   asp-action="Index">
+                                    مجموعات المستخدمين
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark"
+                                   asp-controller="Settings"
+                                   asp-action="Index">
+                                    الإعدادات العامة
+                                </a>
                             </li>
                         }
                     </ul>
+                    
+
 
                     @if (User.Identity?.IsAuthenticated == true)
                     {
                         <ul class="navbar-nav">
-                            <li class="nav-item d-flex align-items-center me-3">
+                           @*  <li class="nav-item d-flex align-items-center me-3">
                                 <span class="nav-link text-dark">@User.Identity.Name</span>
-                            </li>
+                            </li> *@
                             <li class="nav-item">
                                 <form asp-controller="Account" asp-action="Logout" method="post">
                                     @Html.AntiForgeryToken()
