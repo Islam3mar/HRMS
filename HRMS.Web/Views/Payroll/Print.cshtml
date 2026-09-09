@@ -1,0 +1,80 @@
+﻿@model HRMS.Application.DTOs.PayrollRowDto
+@{
+    Layout = null;
+    var monthName = ViewBag.MonthName as string ?? Model.Month.ToString();
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>مفردات راتب - @Model.EmployeeName</title>
+    <style>
+            body {
+                font-family: Arial, Tahoma, sans-serif;
+                padding: 20px;
+            }
+
+            h3, h5 {
+                text-align: center;
+                margin-bottom: 10px;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+
+            th, td {
+                border: 1px solid #999;
+                padding: 8px;
+                text-align: center;
+            }
+
+            th {
+                background-color: #f2f2f2;
+                width: 50%;
+            }
+
+            .net-row td {
+                font-weight: bold;
+                background-color: #f2f2f2;
+                font-size: 1.1em;
+            }
+
+            .print-toolbar {
+                text-align: center;
+                margin-bottom: 15px;
+            }
+
+            @@media print {
+                .print-toolbar {
+                    display: none;
+                }
+            }
+    </style>
+</head>
+<body>
+    <div class="print-toolbar">
+        <button onclick="window.print()">طباعة</button>
+    </div>
+
+    <h3>مفردات راتب موظف</h3>
+    <h5>شهر @monthName - @Model.Year</h5>
+
+    <table>
+        <tbody>
+            <tr><th>اسم الموظف</th><td>@Model.EmployeeName</td></tr>
+            <tr><th>القسم</th><td>@Model.DepartmentName</td></tr>
+            <tr><th>الراتب الاساسى</th><td>@Model.BaseSalary.ToString("N2")</td></tr>
+            <tr><th>عدد ايام الحضور</th><td>@Model.AttendanceDaysCount</td></tr>
+            <tr><th>عدد ايام الغياب</th><td>@Model.AbsenceDaysCount</td></tr>
+            <tr><th>الاضافى بالساعات</th><td>@Model.OvertimeHours.ToString("N2")</td></tr>
+            <tr><th>الخصم بالساعات</th><td>@Model.DeductionHours.ToString("N2")</td></tr>
+            <tr><th>اجمالى الاضافى</th><td>@Model.TotalOvertimeAmount.ToString("N2")</td></tr>
+            <tr><th>اجمالى الخصم</th><td>@Model.TotalDeductionAmount.ToString("N2")</td></tr>
+            <tr class="net-row"><th>الصافى</th><td>@Model.NetSalary.ToString("N2")</td></tr>
+        </tbody>
+    </table>
+</body>
+</html>

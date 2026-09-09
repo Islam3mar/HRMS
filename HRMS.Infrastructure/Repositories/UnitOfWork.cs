@@ -19,6 +19,7 @@ namespace HRMS.Domain.Repositories.Classes
         private IOfficialHolidayRepository? _officialHolidays;
         private IDepartmentRepository? _departments;
         private IAttendanceRecordRepository? _attendanceRecords;
+        private IPayrollRecordRepository? _payrollRecords;
         #endregion
 
         public UnitOfWork(ApplicationDbContext context) => _context = context;
@@ -31,8 +32,11 @@ namespace HRMS.Domain.Repositories.Classes
         public IOfficialHolidayRepository OfficialHolidays => _officialHolidays ??= new OfficialHolidayRepository(_context);
         public IDepartmentRepository Departments => _departments ??= new DepartmentRepository(_context);
         public IAttendanceRecordRepository AttendanceRecords => _attendanceRecords ??= new AttendanceRecordRepository(_context);
-
+        public IPayrollRecordRepository PayrollRecords => _payrollRecords ??= new PayrollRecordRepository(_context);
         #endregion
+
+
+
         public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
         public void Dispose() => _context.Dispose();
     }

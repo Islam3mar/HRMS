@@ -1,0 +1,95 @@
+﻿@model HRMS.Web.ViewModels.PayrollEditViewModel
+@{
+    ViewData["Title"] = "تعديل الراتب";
+}
+
+<div dir="rtl">
+    <h4 class="text-center fw-bold mb-4">تعديل راتب @Model.EmployeeName</h4>
+
+    <div class="card">
+        <div class="card-body">
+            <form asp-controller="Payroll" asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="EmployeeId" />
+                <input type="hidden" asp-for="Month" />
+                <input type="hidden" asp-for="Year" />
+
+                <div asp-validation-summary="All" class="text-danger"></div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">اسم الموظف</label>
+                        <input class="form-control" value="@Model.EmployeeName" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">القسم</label>
+                        <input class="form-control" value="@Model.DepartmentName" readonly />
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">الراتب الاساسى</label>
+                        <input class="form-control" value="@Model.BaseSalary.ToString("N2")" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">عدد ايام الحضور</label>
+                        <input class="form-control" value="@Model.AttendanceDaysCount" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">عدد ايام الغياب</label>
+                        <input class="form-control" value="@Model.AbsenceDaysCount" readonly />
+                    </div>
+                </div>
+
+                <hr />
+                <p class="text-muted small">القيم دي قابلة للتعديل اليدوي، وهتتحفظ فوق الراتب المعتمد فوراً.</p>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label asp-for="TotalOvertimeAmount" class="form-label"></label>
+                        <input asp-for="TotalOvertimeAmount" class="form-control" id="overtimeInput" />
+                        <span asp-validation-for="TotalOvertimeAmount" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="TotalDeductionAmount" class="form-label"></label>
+                        <input asp-for="TotalDeductionAmount" class="form-control" id="deductionInput" />
+                        <span asp-validation-for="TotalDeductionAmount" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="NetSalary" class="form-label"></label>
+                        <input asp-for="NetSalary" class="form-control" id="netSalaryInput" />
+                        <span asp-validation-for="NetSalary" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="text-start">
+                    <a asp-action="Index" class="btn btn-outline-secondary">رجوع</a>
+                    <button type="submit" class="btn" style="background-color:#ff6b81; color:white;">حفظ التعديل</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // اقتراح تلقائي للصافى كل ما الاضافى او الخصم يتغيّر، بس يفضل قابل للتعديل اليدوي بعدها
+        const baseSalary = @Model.BaseSalary.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        const overtimeInput = document.getElementById('overtimeInput');
+        const deductionInput = document.getElementById('deductionInput');
+        const netSalaryInput = document.getElementById('netSalaryInput');
+
+        function suggestNetSalary() {
+            const overtime = parseFloat(overtimeInput.value) || 0;
+            const deduction = parseFloat(deductionInput.value) || 0;
+            netSalaryInput.value = (baseSalary + overtime - deduction).toFixed(2);
+        }
+
+        overtimeInput.addEventListener('input', suggestNetSalary);
+        deductionInput.addEventListener('input', suggestNetSalary);
+    </script>
+}
