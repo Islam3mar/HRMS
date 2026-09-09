@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using HRMS.Domain.Common;
+using HRMS.Domain.Specifications;
 using HRMS.Infrastructure.Data;
+using HRMS.Infrastructure.Specifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace HRMS.Infrastructure.Repositories
@@ -30,5 +32,15 @@ namespace HRMS.Infrastructure.Repositories
         public virtual async Task AddAsync(T entity) => await _dbSet.AddAsync(entity);
         public virtual void Update(T entity) => _dbSet.Update(entity);
         public virtual void Delete(T entity) => _dbSet.Remove(entity);
+
+        // ---------- Specification Pattern ----------
+        public virtual async Task<IEnumerable<T>> ListAsync(ISpecification<T> spec) =>
+            await SpecificationEvaluator<T>.GetQuery(Query.AsNoTracking(), spec).ToListAsync();
+
+        public virtual async Task<int> CountAsync(ISpecification<T> spec) =>
+            await SpecificationEvaluator<T>.GetQuery(Query.AsNoTracking(), spec, evaluateCriteriaOnly: true).CountAsync();
+
+        public virtual async Task<T?> FirstOrDefaultAsync(ISpecification<T> spec) =>
+            await SpecificationEvaluator<T>.GetQuery(Query.AsNoTracking(), spec).FirstOrDefaultAsync();
     }
 }
