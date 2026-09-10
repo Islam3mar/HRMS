@@ -62,7 +62,6 @@ namespace HRMS.Application.Services
             }
 
             _mapper.Map(input, holiday);
-            holiday.UpdatedAt = DateTime.Now;
             _unitOfWork.OfficialHolidays.Update(holiday);
             await _unitOfWork.SaveChangesAsync();
 

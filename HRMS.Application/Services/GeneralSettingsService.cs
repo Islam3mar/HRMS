@@ -45,13 +45,12 @@ namespace HRMS.Application.Services
             if (settings == null)
             {
                 settings = _mapper.Map<GeneralSettings>(input);
-                settings.CreatedAt = DateTime.Now;
                 await _unitOfWork.GeneralSettings.AddAsync(settings);
             }
             else
             {
                 _mapper.Map(input, settings);
-                settings.UpdatedAt = DateTime.Now;
+
                 _unitOfWork.GeneralSettings.Update(settings);
             }
 

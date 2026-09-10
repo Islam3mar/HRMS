@@ -148,8 +148,7 @@ namespace HRMS.Application.Services
                 TotalOvertimeAmount = live.TotalOvertimeAmount,
                 TotalDeductionAmount = live.TotalDeductionAmount,
                 NetSalary = live.NetSalary,
-                ApprovedAt = DateTime.Now,
-                CreatedAt = DateTime.Now
+                ApprovedAt = DateTime.Now
             };
 
             await _unitOfWork.PayrollRecords.AddAsync(record);
@@ -205,7 +204,6 @@ namespace HRMS.Application.Services
             record.TotalOvertimeAmount = input.TotalOvertimeAmount;
             record.TotalDeductionAmount = input.TotalDeductionAmount;
             record.NetSalary = input.NetSalary;
-            record.UpdatedAt = DateTime.Now;
 
             _unitOfWork.PayrollRecords.Update(record);
             await _unitOfWork.SaveChangesAsync();

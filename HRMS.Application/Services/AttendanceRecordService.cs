@@ -37,7 +37,6 @@ namespace HRMS.Application.Services
             if (result.HasErrors) return result;
 
             var record = _mapper.Map<AttendanceRecord>(input);
-            record.CreatedAt = DateTime.Now;
 
             await _unitOfWork.AttendanceRecords.AddAsync(record);
             await _unitOfWork.SaveChangesAsync();
@@ -57,7 +56,6 @@ namespace HRMS.Application.Services
             if (result.HasErrors) return result;
 
             _mapper.Map(input, record);
-            record.UpdatedAt = DateTime.Now;
 
             _unitOfWork.AttendanceRecords.Update(record);
             await _unitOfWork.SaveChangesAsync();
