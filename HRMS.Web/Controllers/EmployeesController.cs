@@ -1,6 +1,7 @@
 ﻿using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Enums;
+using HRMS.Web.Authorization;
 using HRMS.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,15 +21,18 @@ namespace HRMS.Web.Controllers
             _departmentService = departmentService;
         }
 
+        [PermissionAuthorize(SystemPage.Employees, PermissionAction.View)]
         public async Task<IActionResult> Index()
         {
             var employees = await _employeeService.GetAllEmployeesAsync();
             return View(employees);
         }
 
+        [PermissionAuthorize(SystemPage.Employees, PermissionAction.Add)]
         public async Task<IActionResult> Create() => View(await BuildEmptyForm());
 
-        [HttpPost]
+
+        [HttpPost, PermissionAuthorize(SystemPage.Employees, PermissionAction.Add)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(EmployeeFormViewModel model)
         {
@@ -51,6 +55,7 @@ namespace HRMS.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [PermissionAuthorize(SystemPage.Employees, PermissionAction.Edit)]
         public async Task<IActionResult> Edit(int id)
         {
             var employee = await _employeeService.GetEmployeeByIdAsync(id);
@@ -77,7 +82,7 @@ namespace HRMS.Web.Controllers
             return View(model);
         }
 
-        [HttpPost]
+        [HttpPost, PermissionAuthorize(SystemPage.Employees, PermissionAction.Edit)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, EmployeeFormViewModel model)
         {
@@ -100,7 +105,7 @@ namespace HRMS.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost]
+        [HttpPost, PermissionAuthorize(SystemPage.Employees, PermissionAction.Delete)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {

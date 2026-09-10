@@ -1,4 +1,6 @@
 ﻿using HRMS.Application.Interfaces;
+using HRMS.Domain.Enums;
+using HRMS.Web.Authorization;
 using HRMS.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,18 +20,20 @@ namespace HRMS.Web.Controllers
             _roleService = roleService;
         }
 
+        [PermissionAuthorize(SystemPage.UsersManagement, PermissionAction.View)]
         public async Task<IActionResult> Index()
         {
             var users = await _userService.GetAllUsersAsync();
             return View(users);
         }
 
+        [PermissionAuthorize(SystemPage.UsersManagement, PermissionAction.Add)]
         public async Task<IActionResult> Create()
         {
             return View(await BuildEmptyFormAsync());
         }
 
-        [HttpPost]
+        [HttpPost, PermissionAuthorize(SystemPage.UsersManagement, PermissionAction.Add)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UserFormViewModel model)
         {

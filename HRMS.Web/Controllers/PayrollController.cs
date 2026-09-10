@@ -1,5 +1,7 @@
 ﻿using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
+using HRMS.Domain.Enums;
+using HRMS.Web.Authorization;
 using HRMS.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +26,7 @@ namespace HRMS.Web.Controllers
             _payrollService = payrollService;
         }
 
+        [PermissionAuthorize(SystemPage.PayrollReport, PermissionAction.View)]
         public async Task<IActionResult> Index(PayrollSearchViewModel search)
         {
             if (search.Month is < 1 or > 12)
@@ -54,8 +57,10 @@ namespace HRMS.Web.Controllers
             return View(model);
         }
 
+
         // الطباعة نفسها بتعتبر اعتماد: اول مرة يتطبع فيها راتب شهر معين لموظف،
         // بيتحفظ كـ Snapshot ثابت ومتتأثرش قيمته بعد كده حتى لو اتعدلت بيانات الحضور
+        [PermissionAuthorize(SystemPage.PayrollReport, PermissionAction.View)]
         public async Task<IActionResult> Print(int employeeId, int month, int year)
         {
             var row = await _payrollService.ApproveAsync(employeeId, month, year);
@@ -65,6 +70,7 @@ namespace HRMS.Web.Controllers
             ViewBag.MonthName = ArabicMonthNames[month - 1];
             return View(row);
         }
+
 
         // اعتماد الراتب من غير طباعة (زرار منفصل فى الجدول)
         [HttpPost]
@@ -79,7 +85,7 @@ namespace HRMS.Web.Controllers
             return RedirectToAction(nameof(Index), new { Month = month, Year = year, EmployeeName = employeeName });
         }
 
-
+        [PermissionAuthorize(SystemPage.PayrollReport, PermissionAction.Edit)]
         public async Task<IActionResult> Edit(int employeeId, int month, int year)
         {
             var row = await _payrollService.GetForEditAsync(employeeId, month, year);
@@ -107,6 +113,7 @@ namespace HRMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize(SystemPage.PayrollReport, PermissionAction.Edit)]
         public async Task<IActionResult> Edit(PayrollEditViewModel model)
         {
             if (!ModelState.IsValid)

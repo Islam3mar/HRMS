@@ -1,5 +1,7 @@
 ﻿using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
+using HRMS.Domain.Enums;
+using HRMS.Web.Authorization;
 using HRMS.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +18,7 @@ namespace HRMS.Web.Controllers
             _holidayService = holidayService;
         }
 
+        [PermissionAuthorize(SystemPage.OfficialHolidays, PermissionAction.View)]
         public async Task<IActionResult> Index()
         {
             var model = new OfficialHolidaysIndexViewModel
@@ -28,6 +31,7 @@ namespace HRMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize(SystemPage.OfficialHolidays, PermissionAction.Edit)]
         public async Task<IActionResult> Save(OfficialHolidayFormViewModel form)
         {
             if (!ModelState.IsValid)
@@ -52,6 +56,7 @@ namespace HRMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize(SystemPage.OfficialHolidays, PermissionAction.Delete)]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _holidayService.DeleteAsync(id);

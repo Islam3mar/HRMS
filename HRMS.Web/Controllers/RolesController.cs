@@ -1,6 +1,7 @@
 ﻿using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Enums;
+using HRMS.Web.Authorization;
 using HRMS.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,18 +18,20 @@ namespace HRMS.Web.Controllers
             _roleService = roleService;
         }
 
+        [PermissionAuthorize(SystemPage.RolesManagement, PermissionAction.View)]
         public async Task<IActionResult> Index()
         {
             var roles = await _roleService.GetAllRolesAsync();
             return View(roles);
         }
 
+        [PermissionAuthorize(SystemPage.RolesManagement, PermissionAction.Add)]
         public IActionResult Create()
         {
             return View(BuildEmptyForm());
         }
 
-        [HttpPost]
+        [HttpPost, PermissionAuthorize(SystemPage.RolesManagement, PermissionAction.Add)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(RoleFormViewModel model)
         {
@@ -58,6 +61,8 @@ namespace HRMS.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+
+        // 
         private RoleFormViewModel BuildEmptyForm()
         {
             var pages = Enum.GetValues<SystemPage>();

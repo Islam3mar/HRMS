@@ -74,7 +74,8 @@ namespace HRMS.Web.Controllers
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Name, user.FullName),
                 new(ClaimTypes.Email, user.Email),
-                new(ClaimTypes.Role, user.Role.Name)   // اسم المجموعة (Role) مش رقمها، عشان نستخدمه في [Authorize(Roles = "...")]
+                new(ClaimTypes.Role, user.Role.Name),   // اسم المجموعة (Role) مش رقمها، عشان نستخدمه في [Authorize(Roles = "...")]
+                new("RoleId", user.RoleId.ToString())
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

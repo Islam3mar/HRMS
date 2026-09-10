@@ -1,6 +1,7 @@
 ﻿using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Enums;
+using HRMS.Web.Authorization;
 using HRMS.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,7 @@ namespace HRMS.Web.Controllers
             _settingsService = settingsService;
         }
 
+        [PermissionAuthorize(SystemPage.GeneralSettings, PermissionAction.View)]
         public async Task<IActionResult> Index()
         {
             var settings = await _settingsService.GetSettingsAsync();
@@ -39,6 +41,7 @@ namespace HRMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize(SystemPage.GeneralSettings, PermissionAction.Edit)]
         public async Task<IActionResult> Save(GeneralSettingsFormViewModel model)
         {
             var wasExisting = await _settingsService.GetSettingsAsync() != null;

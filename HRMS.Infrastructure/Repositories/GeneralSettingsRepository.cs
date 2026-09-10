@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HRMS.Infrastructure.Repositories
 {
-    public class GeneralSettingsRepository : BaseRepository<GeneralSettings>, IGeneralSettingsRepository
+    public class GeneralSettingsRepository : GenericRepository<GeneralSettings>, IGeneralSettingsRepository
     {
         public GeneralSettingsRepository(ApplicationDbContext context) : base(context) { }
 

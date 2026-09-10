@@ -5,7 +5,7 @@ using HRMS.Domain.Interfaces;
 using HRMS.Infrastructure.Data;
 using HRMS.Infrastructure.Repositories;
 
-namespace HRMS.Domain.Repositories.Classes
+namespace HRMS.Infrastructure.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {

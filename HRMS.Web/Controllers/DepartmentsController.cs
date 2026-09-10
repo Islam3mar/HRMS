@@ -1,5 +1,7 @@
 ﻿using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
+using HRMS.Domain.Enums;
+using HRMS.Web.Authorization;
 using HRMS.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +18,7 @@ namespace HRMS.Web.Controllers
             _departmentService = departmentService;
         }
 
+        [PermissionAuthorize(SystemPage.Departments, PermissionAction.View)]
         public async Task<IActionResult> Index()
         {
             var model = new DepartmentsIndexViewModel
@@ -28,6 +31,7 @@ namespace HRMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize(SystemPage.Departments, PermissionAction.Edit)]
         public async Task<IActionResult> Save(DepartmentFormViewModel form)
         {
             if (!ModelState.IsValid)
@@ -51,12 +55,14 @@ namespace HRMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize(SystemPage.Departments, PermissionAction.Delete)]
         public async Task<IActionResult> Delete(int id)
         {
             var (success, error) = await _departmentService.DeleteAsync(id);
             TempData["SuccessMessage"] = success ? "تم حذف القسم بنجاح" : error;
             return RedirectToAction(nameof(Index));
         }
+
 
         private async Task<IActionResult> ReturnIndexWithErrors(DepartmentFormViewModel form)
         {
