@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using HRMS.Domain.Entities;
 using HRMS.Domain.Interfaces;
+using HRMS.Domain.Specifications.OfficialHolidays;
 using HRMS.Infrastructure.Data;
+using HRMS.Infrastructure.Specifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace HRMS.Infrastructure.Repositories
@@ -13,7 +15,10 @@ namespace HRMS.Infrastructure.Repositories
         public OfficialHolidayRepository(ApplicationDbContext context) : base(context) { }
 
         public async Task<IEnumerable<OfficialHoliday>> GetAllOrderedByDateAsync()
-            => await Query.AsNoTracking().OrderBy(h => h.Date).ToListAsync();
+        {
+            var spec = new OfficialHolidaysOrderedSpecification();
+            return await SpecificationEvaluator<OfficialHoliday>.GetQuery(Query.AsNoTracking(), spec).ToListAsync();
+        }
 
         public async Task<bool> DateExistsAsync(DateTime date, int? excludeId = null)
             => await Query.AnyAsync(h => h.Date.Date == date.Date &&

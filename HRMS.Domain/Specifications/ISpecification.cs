@@ -8,6 +8,11 @@ namespace HRMS.Domain.Specifications
 {
     // العقد العام لأي Specification: بيوصف "عايزين إيه" (شرط + Includes + ترتيب + صفحات)
     // من غير ما الـ Repository يعرف تفاصيل الاستعلام نفسه
+
+    // Rule : 
+    // القاعدة: أي Query بترجع List أو Paged Result بيتعمله Specification.
+    // أي Query بترجع bool (Exists) أو Entity واحد بشرط بسيط، بيفضل LINQ مباشر جوه الـ Repository.
+
     public interface ISpecification<T> where T : BaseEntity
     {
         Expression<Func<T, bool>>? Criteria { get; }
