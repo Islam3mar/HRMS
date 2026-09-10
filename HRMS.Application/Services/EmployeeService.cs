@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 using AutoMapper;
+using HRMS.Application.Common;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Common;
 using HRMS.Domain.Entities;
 using HRMS.Domain.Interfaces;
 using HRMS.Domain.Specifications.Employees;
+using Microsoft.EntityFrameworkCore;
 
 namespace HRMS.Application.Services
 {
@@ -17,31 +18,41 @@ namespace HRMS.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IEncryptionService _encryptionService;
 
         // تاريخ تأسيس الشركة (قاعدة رقم 6) - عدّله لو التاريخ مختلف
         private static readonly DateTime CompanyFoundationDate = new(2005, 6, 6);
         private const int MinimumAge = 20; // قاعدة رقم 4
 
-        public EmployeeService(IUnitOfWork unitOfWork, IMapper mapper)
+        public EmployeeService(IUnitOfWork unitOfWork, IMapper mapper, IEncryptionService encryptionService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _encryptionService = encryptionService;
         }
 
         public async Task<IEnumerable<Employee>> GetAllEmployeesAsync()
-            => await _unitOfWork.Employees.GetAllAsync();
+        {
+            var employees = (await _unitOfWork.Employees.GetAllAsync()).ToList();
+            foreach (var e in employees) e.NationalId = _encryptionService.Decrypt(e.NationalId);
+            return employees;
+        }
 
         public async Task<Employee?> GetEmployeeByIdAsync(int id)
-            => await _unitOfWork.Employees.GetByIdAsync(id);
+    {
+        var employee = await _unitOfWork.Employees.GetByIdAsync(id);
+        if (employee != null) employee.NationalId = _encryptionService.Decrypt(employee.NationalId);
+        return employee;
+    }
 
         public async Task<EmployeeResult> CreateEmployeeAsync(EmployeeInput input)
         {
             var result = new EmployeeResult();
             await ValidateAsync(result, input, excludeEmployeeId: null);
-
             if (result.HasErrors) return result;
 
             var employee = _mapper.Map<Employee>(input);
+            employee.NationalId = _encryptionService.Encrypt(input.NationalId);   // نشفر قبل الحفظ
 
             await _unitOfWork.Employees.AddAsync(employee);
             await _unitOfWork.SaveChangesAsync();
@@ -50,6 +61,7 @@ namespace HRMS.Application.Services
             result.Employee = employee;
             return result;
         }
+
 
         public async Task<EmployeeResult> UpdateEmployeeAsync(int id, EmployeeInput input)
         {
@@ -66,6 +78,7 @@ namespace HRMS.Application.Services
             if (result.HasErrors) return result;
 
             _mapper.Map(input, employee); // in-place mapping على الـ Entity الموجود
+            employee.NationalId = _encryptionService.Encrypt(input.NationalId);
 
             _unitOfWork.Employees.Update(employee);
             await _unitOfWork.SaveChangesAsync();
@@ -130,7 +143,9 @@ namespace HRMS.Application.Services
                 result.NationalIdError = "هذا الحقل مطلوب";
             else if (!Regex.IsMatch(input.NationalId, @"^\d{14}$"))
                 result.NationalIdError = "الرقم القومي يجب ان يتكون من 14 رقم";
-            else if (await _unitOfWork.Employees.NationalIdExistsAsync(input.NationalId.Trim(), excludeEmployeeId))
+
+            else if (await _unitOfWork.Employees.NationalIdExistsAsync(
+                      _encryptionService.Encrypt(input.NationalId.Trim()), excludeEmployeeId))   // نقارن بالمشفر
                 result.NationalIdError = "هذا الرقم القومي مستخدم بالفعل لموظف اخر";
 
             // قاعدة 4: تاريخ الميلاد منطقي + السن لا يقل عن 20 سنة

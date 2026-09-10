@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using HRMS.Application.Common;
 using HRMS.Application.Interfaces;
 using HRMS.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,8 @@ namespace HRMS.Application
             services.AddScoped<IDepartmentService, DepartmentService>();
             services.AddScoped<IAttendanceRecordService, AttendanceRecordService>();
             services.AddScoped<IPayrollService, PayrollService>();
+
+            services.AddSingleton<IEncryptionService, AesEncryptionService>();
 
             // AutoMapper 13+ بيشتغل بس بالـ Action overload، فبنقوله يدوّر
             // على كل الـ Profiles الموجودة في نفس الـ Assembly بتاع HRMS.Application
