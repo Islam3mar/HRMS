@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using AutoMapper;
 using ClosedXML.Excel;
+using HRMS.Application.Common;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Common;
@@ -15,11 +16,13 @@ namespace HRMS.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IEncryptionService _encryptionService;
 
-        public AttendanceRecordService(IUnitOfWork unitOfWork, IMapper mapper)
+        public AttendanceRecordService(IUnitOfWork unitOfWork, IMapper mapper, IEncryptionService encryptionService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _encryptionService = encryptionService;
         }
 
         public async Task<PagedResult<AttendanceRecord>> SearchAsync(AttendanceSearchFilter filter)
@@ -118,7 +121,7 @@ namespace HRMS.Application.Services
 
             // بنجيب كل الموظفين مرة واحدة عشان نقلل عدد الاستعلامات على قاعدة البيانات
             var employeesByNationalId = (await _unitOfWork.Employees.GetAllAsync())
-            .ToDictionary(e => e.NationalId);
+              .ToDictionary(e => e.NationalId);
 
             using var workbook = new XLWorkbook(fileStream);
             var sheet = workbook.Worksheets.First();
@@ -129,7 +132,7 @@ namespace HRMS.Application.Services
                 var rowNumber = row.RowNumber();
                 try
                 {
-                    var nationalId = row.Cell(1).GetString().Trim();
+                    var nationalId = _encryptionService.Encrypt(row.Cell(1).GetString().Trim());
                     var dateCell = row.Cell(2);
                     var checkInCell = row.Cell(3);
                     var checkOutCell = row.Cell(4);

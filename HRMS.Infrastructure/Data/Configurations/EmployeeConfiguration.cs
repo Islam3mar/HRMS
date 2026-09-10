@@ -13,7 +13,7 @@ namespace HRMS.Infrastructure.Data.Configurations
         {
             builder.Property(e => e.FullName).IsRequired().HasMaxLength(150);
             builder.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(11);
-            builder.Property(e => e.NationalId).IsRequired().HasMaxLength(14);
+            builder.Property(e => e.NationalId).IsRequired().HasMaxLength(100);
             builder.Property(e => e.Salary).HasColumnType("decimal(18,2)");
             builder.Property(e => e.Gender).HasConversion<string>().HasMaxLength(20);
 
