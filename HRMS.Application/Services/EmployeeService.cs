@@ -5,8 +5,10 @@ using System.Text.RegularExpressions;
 using AutoMapper;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
+using HRMS.Domain.Common;
 using HRMS.Domain.Entities;
 using HRMS.Domain.Interfaces;
+using HRMS.Domain.Specifications.Employees;
 
 namespace HRMS.Application.Services
 {
@@ -82,6 +84,15 @@ namespace HRMS.Application.Services
             _unitOfWork.Employees.Delete(employee);
             await _unitOfWork.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<PagedResult<Employee>> GetPagedEmployeesAsync(int page, int pageSize)
+        {
+            var spec = new EmployeesPagedSpecification(page, pageSize);
+            var items = await _unitOfWork.Employees.ListAsync(spec);
+            var total = await _unitOfWork.Employees.CountAsync(spec);
+
+            return new PagedResult<Employee> { Items = items, TotalCount = total, Page = page, PageSize = pageSize };
         }
 
         // ---------- Validation (القواعد 1 لـ 7) ----------

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using HRMS.Application.DTOs;
+using HRMS.Domain.Common;
 using HRMS.Domain.Entities;
 
 namespace HRMS.Application.Interfaces
@@ -10,5 +11,7 @@ namespace HRMS.Application.Interfaces
     {
         Task<UserResult> CreateUserAsync(string fullName, string username, string email, string password, int roleId);
         Task<IEnumerable<User>> GetAllUsersAsync();
+
+        Task<PagedResult<User>> GetPagedUsersAsync(int page, int pageSize);
     }
 }

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<HRMS.Domain.Entities.Role>
+﻿@model HRMS.Domain.Common.PagedResult<HRMS.Domain.Entities.Role>
 @{
     ViewData["Title"] = "مجموعة المستخدمين";
 }
@@ -13,7 +13,7 @@
     <div class="alert alert-success">@TempData["SuccessMessage"]</div>
 }
 
-@if (!Model.Any())
+@if (!Model.Items.Any())
 {
     <div class="alert alert-info">لا توجد مجموعات مضافة حتى الآن.</div>
 }
@@ -27,7 +27,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var role in Model)
+            @foreach (var role in Model.Items)
             {
                 <tr>
                     <td>@role.Name</td>
@@ -36,4 +36,17 @@ else
             }
         </tbody>
     </table>
+}
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-3">
+        <ul class="pagination justify-content-center">
+            @for (var p = 1; p <= Model.TotalPages; p++)
+            {
+                <li class="page-item @(p == Model.Page ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@p">@p</a>
+                </li>
+            }
+        </ul>
+    </nav>
 }

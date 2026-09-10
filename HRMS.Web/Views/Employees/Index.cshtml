@@ -1,4 +1,4 @@
-﻿@model IEnumerable<HRMS.Domain.Entities.Employee>
+﻿@model HRMS.Domain.Common.PagedResult<HRMS.Domain.Entities.Employee>
 @{
     ViewData["Title"] = "الموظفين";
 }
@@ -27,7 +27,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var emp in Model)
+            @foreach (var emp in Model.Items)
             {
                 <tr>
                     <td>@emp.FullName</td>
@@ -43,4 +43,18 @@
             }
         </tbody>
     </table>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center">
+                @for (var p = 1; p <= Model.TotalPages; p++)
+                {
+                    <li class="page-item @(p == Model.Page ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@p">@p</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
 </div>
