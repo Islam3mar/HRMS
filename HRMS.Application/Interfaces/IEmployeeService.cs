@@ -14,7 +14,7 @@ namespace HRMS.Application.Interfaces
 
         Task<EmployeeResult> CreateEmployeeAsync(EmployeeInput input);
         Task<EmployeeResult> UpdateEmployeeAsync(int id, EmployeeInput input);
-        Task<bool> DeleteEmployeeAsync(int id);
+        Task<(bool Success, string? Error)> DeleteEmployeeAsync(int id);
 
         Task<PagedResult<Employee>> GetPagedEmployeesAsync(int page, int pageSize);
     }

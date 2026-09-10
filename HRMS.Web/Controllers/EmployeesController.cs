@@ -105,13 +105,14 @@ namespace HRMS.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+
         [HttpPost, PermissionAuthorize(SystemPage.Employees, PermissionAction.Delete)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var deleted = await _employeeService.DeleteEmployeeAsync(id);
-
-            TempData["SuccessMessage"] = deleted ? "تم حذف الموظف بنجاح" : "الموظف غير موجود";
+            var (success, error) = await _employeeService.DeleteEmployeeAsync(id);
+            TempData["SuccessMessage"] = success ? "تم حذف الموظف بنجاح" : null;
+            TempData["ErrorMessage"] = success ? null : error;
             return RedirectToAction(nameof(Index));
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 using AutoMapper;
 using HRMS.Application.DTOs;
@@ -74,15 +75,27 @@ namespace HRMS.Application.Services
             return result;
         }
 
-        public async Task<bool> DeleteEmployeeAsync(int id)
+
+        // DeleteEmployeeAsync method with error handling for foreign key constraints
+        public async Task<(bool Success, string? Error)> DeleteEmployeeAsync(int id)
         {
             var employee = await _unitOfWork.Employees.GetByIdAsync(id);
-            if (employee == null) return false;
+            if (employee == null) return (false, "الموظف غير موجود");
 
             _unitOfWork.Employees.Delete(employee);
-            await _unitOfWork.SaveChangesAsync();
-            return true;
+
+            try
+            {
+                await _unitOfWork.SaveChangesAsync();
+                return (true, null);
+            }
+            catch (DbUpdateException)
+            {
+                // بيحصل لو الموظف مرتبط بسجلات رواتب معتمدة (DeleteBehavior.Restrict)
+                return (false, "لا يمكن حذف هذا الموظف لأن له رواتب معتمدة أو سجلات مرتبطة به");
+            }
         }
+
 
         public async Task<PagedResult<Employee>> GetPagedEmployeesAsync(int page, int pageSize)
         {
