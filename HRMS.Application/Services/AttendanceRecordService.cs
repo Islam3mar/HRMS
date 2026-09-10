@@ -118,10 +118,12 @@ namespace HRMS.Application.Services
         {
             var importResult = new AttendanceImportResult();
 
+            // بنجيب كل الموظفين مرة واحدة عشان نقلل عدد الاستعلامات على قاعدة البيانات
+            var employeesByNationalId = (await _unitOfWork.Employees.GetAllAsync())
+            .ToDictionary(e => e.NationalId);
+
             using var workbook = new XLWorkbook(fileStream);
             var sheet = workbook.Worksheets.First();
-
-            // بنبدأ من الصف التاني لان الصف الاول عناوين الاعمدة
             var rows = sheet.RowsUsed().Skip(1);
 
             foreach (var row in rows)
@@ -141,8 +143,14 @@ namespace HRMS.Application.Services
                         continue;
                     }
 
-                    var employees = await _unitOfWork.Employees.GetAllAsync();
-                    var employee = employees.FirstOrDefault(e => e.NationalId == nationalId);
+
+                    if (!employeesByNationalId.TryGetValue(nationalId, out var employee))
+                    {
+                        importResult.FailedCount++;
+                        importResult.Errors.Add($"صف {rowNumber}: لا يوجد موظف بهذا الرقم القومي ({nationalId})");
+                        continue;
+                    }
+
                     if (employee == null)
                     {
                         importResult.FailedCount++;
