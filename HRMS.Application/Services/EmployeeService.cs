@@ -113,8 +113,10 @@ namespace HRMS.Application.Services
         public async Task<PagedResult<Employee>> GetPagedEmployeesAsync(int page, int pageSize)
         {
             var spec = new EmployeesPagedSpecification(page, pageSize);
-            var items = await _unitOfWork.Employees.ListAsync(spec);
+            var items = (await _unitOfWork.Employees.ListAsync(spec)).ToList();
             var total = await _unitOfWork.Employees.CountAsync(spec);
+
+            foreach (var e in items) e.NationalId = _encryptionService.Decrypt(e.NationalId);   // ← ضيف السطر ده
 
             return new PagedResult<Employee> { Items = items, TotalCount = total, Page = page, PageSize = pageSize };
         }
