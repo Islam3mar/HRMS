@@ -41,7 +41,6 @@ namespace HRMS.Application.Services
             if (result.HasErrors) return result;
 
             var employee = _mapper.Map<Employee>(input);
-            employee.CreatedAt = DateTime.Now;
 
             await _unitOfWork.Employees.AddAsync(employee);
             await _unitOfWork.SaveChangesAsync();
@@ -66,7 +65,6 @@ namespace HRMS.Application.Services
             if (result.HasErrors) return result;
 
             _mapper.Map(input, employee); // in-place mapping على الـ Entity الموجود
-            employee.UpdatedAt = DateTime.Now;
 
             _unitOfWork.Employees.Update(employee);
             await _unitOfWork.SaveChangesAsync();

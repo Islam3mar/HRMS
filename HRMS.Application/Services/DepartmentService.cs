@@ -32,7 +32,6 @@ namespace HRMS.Application.Services
             if (result.HasErrors) return result;
 
             var department = _mapper.Map<Department>(input);
-            department.CreatedAt = DateTime.Now;
 
             await _unitOfWork.Departments.AddAsync(department);
             await _unitOfWork.SaveChangesAsync();
@@ -52,7 +51,6 @@ namespace HRMS.Application.Services
             if (result.HasErrors) return result;
 
             _mapper.Map(input, department);
-            department.UpdatedAt = DateTime.Now;
 
             _unitOfWork.Departments.Update(department);
             await _unitOfWork.SaveChangesAsync();

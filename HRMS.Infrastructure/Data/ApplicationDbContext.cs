@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using HRMS.Domain.Common;
 using HRMS.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +27,23 @@ namespace HRMS.Infrastructure.Data
         public DbSet<OfficialHoliday> OfficialHolidays => Set<OfficialHoliday>();
         public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
         public DbSet<PayrollRecord> PayrollRecords => Set<PayrollRecord>();
+        #endregion
+
+        #region Override SaveChangesAsync to set CreatedAt and UpdatedAt
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            var now = DateTime.Now;
+
+            foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+            {
+                if (entry.State == EntityState.Added)
+                    entry.Entity.CreatedAt = now;
+                else if (entry.State == EntityState.Modified)
+                    entry.Entity.UpdatedAt = now;
+            }
+
+            return await base.SaveChangesAsync(cancellationToken);
+        } 
         #endregion
     }
 }
