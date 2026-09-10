@@ -4,8 +4,11 @@ using System.Text;
 using AutoMapper;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
+using HRMS.Domain.Common;
 using HRMS.Domain.Entities;
 using HRMS.Domain.Interfaces;
+using HRMS.Domain.Specifications.Employees;
+using HRMS.Domain.Specifications.Roles;
 
 namespace HRMS.Application.Services
 {
@@ -53,6 +56,15 @@ namespace HRMS.Application.Services
         public async Task<IEnumerable<Role>> GetAllRolesAsync()
         {
             return await _unitOfWork.Roles.GetAllAsync();
+        }
+
+        public async Task<PagedResult<Role>> GetPagedRolesAsync(int page, int pageSize)
+        {
+            var spec = new RolesPagedSpecification(page, pageSize);
+            var items = await _unitOfWork.Roles.ListAsync(spec);
+            var total = await _unitOfWork.Roles.CountAsync(spec);
+
+            return new PagedResult<Role> { Items = items, TotalCount = total, Page = page, PageSize = pageSize };
         }
     }
 }

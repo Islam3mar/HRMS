@@ -5,8 +5,11 @@ using HRMS.Application.Common;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Application.Profiles;
+using HRMS.Domain.Common;
 using HRMS.Domain.Entities;
 using HRMS.Domain.Interfaces;
+using HRMS.Domain.Specifications.Employees;
+using HRMS.Domain.Specifications.Users;
 
 namespace HRMS.Application.Services
 {
@@ -62,6 +65,15 @@ namespace HRMS.Application.Services
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
             return await _unitOfWork.Users.GetAllWithRoleAsync();
+        }
+
+        public async Task<PagedResult<User>> GetPagedUsersAsync(int page, int pageSize)
+        {
+            var spec = new UsersPagedSpecification(page, pageSize);
+            var items = await _unitOfWork.Users.ListAsync(spec);
+            var total = await _unitOfWork.Users.CountAsync(spec);
+
+            return new PagedResult<User> { Items = items, TotalCount = total, Page = page, PageSize = pageSize };
         }
     }
 }

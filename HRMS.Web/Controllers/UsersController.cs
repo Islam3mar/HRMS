@@ -1,4 +1,5 @@
 ﻿using HRMS.Application.Interfaces;
+using HRMS.Application.Services;
 using HRMS.Domain.Enums;
 using HRMS.Web.Authorization;
 using HRMS.Web.ViewModels;
@@ -21,10 +22,10 @@ namespace HRMS.Web.Controllers
         }
 
         [PermissionAuthorize(SystemPage.UsersManagement, PermissionAction.View)]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var users = await _userService.GetAllUsersAsync();
-            return View(users);
+            var result = await _userService.GetPagedUsersAsync(page, pageSize: 10);
+            return View(result);
         }
 
         [PermissionAuthorize(SystemPage.UsersManagement, PermissionAction.Add)]

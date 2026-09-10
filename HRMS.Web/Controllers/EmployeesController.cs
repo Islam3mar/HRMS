@@ -22,10 +22,10 @@ namespace HRMS.Web.Controllers
         }
 
         [PermissionAuthorize(SystemPage.Employees, PermissionAction.View)]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var employees = await _employeeService.GetAllEmployeesAsync();
-            return View(employees);
+            var result = await _employeeService.GetPagedEmployeesAsync(page, pageSize: 10);
+            return View(result);
         }
 
         [PermissionAuthorize(SystemPage.Employees, PermissionAction.Add)]
