@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HRMS.Infrastructure.Repositories
 {
-    public class RoleRepository : BaseRepository<Role>, IRoleRepository
+    public class RoleRepository : GenericRepository<Role>, IRoleRepository
     {
         public RoleRepository(ApplicationDbContext context) : base(context) { }
 

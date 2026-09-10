@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HRMS.Infrastructure.Repositories
 {
-    public class PayrollRecordRepository : BaseRepository<PayrollRecord>, IPayrollRecordRepository
+    public class PayrollRecordRepository : GenericRepository<PayrollRecord>, IPayrollRecordRepository
     {
         public PayrollRecordRepository(ApplicationDbContext context) : base(context) { }
 

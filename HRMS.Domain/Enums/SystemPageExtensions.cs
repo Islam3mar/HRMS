@@ -13,6 +13,9 @@ namespace HRMS.Domain.Enums
             SystemPage.AttendanceReport => "الحضور و الانصراف",
             SystemPage.PayrollReport => "تقرير الرواتب",
             SystemPage.UsersManagement => "مستخدمين النظام",
+            SystemPage.OfficialHolidays => "العطلات الرسمية",
+            SystemPage.RolesManagement => "مجموعات المستخدمين",
+            SystemPage.Departments => "الأقسام",
             _ => page.ToString()
         };
     }

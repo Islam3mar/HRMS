@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HRMS.Infrastructure.Repositories
 {
-    public class DepartmentRepository : BaseRepository<Department>, IDepartmentRepository
+    public class DepartmentRepository : GenericRepository<Department>, IDepartmentRepository
     {
         public DepartmentRepository(ApplicationDbContext context) : base(context) { }
 

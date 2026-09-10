@@ -1,6 +1,6 @@
 ﻿using HRMS.Domain.Interfaces;
-using HRMS.Domain.Repositories.Classes;
 using HRMS.Infrastructure.Data;
+using HRMS.Infrastructure.Repositories;
 using HRMS.Infrastructure.Seeding;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;

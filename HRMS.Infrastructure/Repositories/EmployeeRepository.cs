@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HRMS.Infrastructure.Repositories
 {
-    public class EmployeeRepository : BaseRepository<Employee>, IEmployeeRepository
+    public class EmployeeRepository : GenericRepository<Employee>, IEmployeeRepository
     {
         public EmployeeRepository(ApplicationDbContext context) : base(context) { }
 

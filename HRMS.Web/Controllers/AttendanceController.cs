@@ -1,6 +1,8 @@
 ﻿using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Common;
+using HRMS.Domain.Enums;
+using HRMS.Web.Authorization;
 using HRMS.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +24,7 @@ namespace HRMS.Web.Controllers
             _employeeService = employeeService;
         }
 
+        [PermissionAuthorize(SystemPage.AttendanceReport, PermissionAction.View)]
         public async Task<IActionResult> Index(AttendanceSearchViewModel search)
         {
             var model = await BuildIndexViewModel(search);
@@ -30,6 +33,7 @@ namespace HRMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize(SystemPage.AttendanceReport, PermissionAction.Edit)]
         public async Task<IActionResult> Save(AttendanceFormViewModel form, AttendanceSearchViewModel search)
         {
             if (!ModelState.IsValid)
@@ -62,6 +66,7 @@ namespace HRMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize(SystemPage.AttendanceReport, PermissionAction.Delete)]
         public async Task<IActionResult> Delete(int id, AttendanceSearchViewModel search)
         {
             var deleted = await _attendanceService.DeleteAsync(id);
@@ -71,6 +76,7 @@ namespace HRMS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize(SystemPage.AttendanceReport, PermissionAction.Add)]
         public async Task<IActionResult> Import(IFormFile? excelFile, AttendanceSearchViewModel search)
         {
             if (excelFile == null || excelFile.Length == 0)
@@ -89,6 +95,7 @@ namespace HRMS.Web.Controllers
             return RedirectToIndexWithSearch(search);
         }
 
+        [PermissionAuthorize(SystemPage.AttendanceReport, PermissionAction.View)]
         public async Task<IActionResult> ExportExcel(AttendanceSearchViewModel search)
         {
             var filter = BuildFilter(search, forExportOrPrint: true);
@@ -98,6 +105,7 @@ namespace HRMS.Web.Controllers
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
+        [PermissionAuthorize(SystemPage.AttendanceReport, PermissionAction.View)]
         public async Task<IActionResult> Print(AttendanceSearchViewModel search)
         {
             var filter = BuildFilter(search, forExportOrPrint: true);

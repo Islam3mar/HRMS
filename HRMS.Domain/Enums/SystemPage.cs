@@ -11,6 +11,8 @@ namespace HRMS.Domain.Enums
         AttendanceReport = 3,   // الحضور و الانصراف
         PayrollReport = 4,      // تقرير الرواتب
         UsersManagement = 5,  // مستخدمين النظام (لازم تتحط برضه عشان الـ HR يقدر يدير المستخدمين)
-        OfficialHolidays = 6
+        OfficialHolidays = 6,
+        RolesManagement = 7,
+        Departments = 8
     }
 }

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HRMS.Infrastructure.Repositories
 {
-    public class OfficialHolidayRepository : BaseRepository<OfficialHoliday>, IOfficialHolidayRepository
+    public class OfficialHolidayRepository : GenericRepository<OfficialHoliday>, IOfficialHolidayRepository
     {
         public OfficialHolidayRepository(ApplicationDbContext context) : base(context) { }
 
