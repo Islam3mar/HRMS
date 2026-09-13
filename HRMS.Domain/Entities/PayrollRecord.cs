@@ -30,6 +30,8 @@ namespace HRMS.Domain.Entities
 
         public decimal NetSalary { get; set; }
 
+        public decimal HourlyRate { get; set; }   // سعر الساعة العادى وقت الاعتماد - مجمّد زي باقي القيم
+
         public DateTime ApprovedAt { get; set; }
     }
 }

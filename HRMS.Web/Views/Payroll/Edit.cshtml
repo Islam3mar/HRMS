@@ -28,38 +28,61 @@
                 </div>
 
                 <div class="row mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">الراتب الاساسى</label>
                         <input class="form-control" value="@Model.BaseSalary.ToString("N2")" readonly />
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">عدد ايام الحضور</label>
                         <input class="form-control" value="@Model.AttendanceDaysCount" readonly />
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">عدد ايام الغياب</label>
                         <input class="form-control" value="@Model.AbsenceDaysCount" readonly />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">سعر الساعة العادى</label>
+                        <input class="form-control" value="@Model.HourlyRate.ToString("N2")" readonly />
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">ساعات الاضافى</label>
+                        <input class="form-control" value="@Model.OvertimeHours.ToString("N2")" readonly />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">ساعات الخصم</label>
+                        <input class="form-control" value="@Model.DeductionHours.ToString("N2")" readonly />
                     </div>
                 </div>
 
                 <hr />
-                <p class="text-muted small">القيم دي قابلة للتعديل اليدوي، وهتتحفظ فوق الراتب المعتمد فوراً.</p>
+                <p class="text-muted small">
+                    ادخل نسبة الاضافة والخصم كنسبة مئوية من سعر الساعة (بنفس منطق الاعدادات العامة)،
+                    والمبالغ والصافى هتتحسب تلقائيًا وتتحفظ فوق الراتب المعتمد فوراً.
+                </p>
 
                 <div class="row mb-3">
                     <div class="col-md-4">
-                        <label asp-for="TotalOvertimeAmount" class="form-label"></label>
-                        <input asp-for="TotalOvertimeAmount" class="form-control" id="overtimeInput" />
-                        <span asp-validation-for="TotalOvertimeAmount" class="text-danger"></span>
+                        <label asp-for="AdditionRatePercentage" class="form-label"></label>
+                        <div class="input-group">
+                            <input asp-for="AdditionRatePercentage" class="form-control" id="additionRateInput" />
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <span asp-validation-for="AdditionRatePercentage" class="text-danger"></span>
                     </div>
                     <div class="col-md-4">
-                        <label asp-for="TotalDeductionAmount" class="form-label"></label>
-                        <input asp-for="TotalDeductionAmount" class="form-control" id="deductionInput" />
-                        <span asp-validation-for="TotalDeductionAmount" class="text-danger"></span>
+                        <label asp-for="DeductionRatePercentage" class="form-label"></label>
+                        <div class="input-group">
+                            <input asp-for="DeductionRatePercentage" class="form-control" id="deductionRateInput" />
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <span asp-validation-for="DeductionRatePercentage" class="text-danger"></span>
                     </div>
                     <div class="col-md-4">
-                        <label asp-for="NetSalary" class="form-label"></label>
-                        <input asp-for="NetSalary" class="form-control" id="netSalaryInput" />
-                        <span asp-validation-for="NetSalary" class="text-danger"></span>
+                        <label class="form-label">الصافى المتوقع (معاينة فقط)</label>
+                        <input class="form-control" id="netSalaryPreview" readonly />
                     </div>
                 </div>
 
@@ -77,19 +100,32 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        // اقتراح تلقائي للصافى كل ما الاضافى او الخصم يتغيّر، بس يفضل قابل للتعديل اليدوي بعدها
+        // معاينة فورية بس - الحساب الفعلي والمعتمد بيحصل فى السيرفر بنفس المعادلة بالظبط
         const baseSalary = @Model.BaseSalary.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        const overtimeInput = document.getElementById('overtimeInput');
-        const deductionInput = document.getElementById('deductionInput');
-        const netSalaryInput = document.getElementById('netSalaryInput');
+        const hourlyRate = @Model.HourlyRate.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        const overtimeHours = @Model.OvertimeHours.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        const deductionHours = @Model.DeductionHours.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
-        function suggestNetSalary() {
-            const overtime = parseFloat(overtimeInput.value) || 0;
-            const deduction = parseFloat(deductionInput.value) || 0;
-            netSalaryInput.value = (baseSalary + overtime - deduction).toFixed(2);
+        const additionRateInput = document.getElementById('additionRateInput');
+        const deductionRateInput = document.getElementById('deductionRateInput');
+        const netSalaryPreview = document.getElementById('netSalaryPreview');
+
+        function updatePreview() {
+            const additionRate = parseFloat(additionRateInput.value) || 0;
+            const deductionRate = parseFloat(deductionRateInput.value) || 0;
+
+            const overtimeHourRate = hourlyRate * (1 + additionRate / 100);
+            const deductionHourRate = hourlyRate * (deductionRate / 100);
+
+            const totalOvertime = overtimeHours * overtimeHourRate;
+            const totalDeduction = deductionHours * deductionHourRate;
+            const netSalary = baseSalary + totalOvertime - totalDeduction;
+
+            netSalaryPreview.value = netSalary.toFixed(2);
         }
 
-        overtimeInput.addEventListener('input', suggestNetSalary);
-        deductionInput.addEventListener('input', suggestNetSalary);
+        additionRateInput.addEventListener('input', updatePreview);
+        deductionRateInput.addEventListener('input', updatePreview);
+        updatePreview();
     </script>
 }

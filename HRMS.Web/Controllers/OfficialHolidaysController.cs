@@ -45,8 +45,8 @@ namespace HRMS.Web.Controllers
 
             if (!result.Success)
             {
-                if (result.NameError != null) ModelState.AddModelError(nameof(form.Name), result.NameError);
-                if (result.DateError != null) ModelState.AddModelError(nameof(form.Date), result.DateError);
+                if (result.NameError != null) ModelState.AddModelError("Form.Name", result.NameError);
+                if (result.DateError != null) ModelState.AddModelError("Form.Date", result.DateError);
                 return await ReturnIndexWithErrors(form);
             }
 

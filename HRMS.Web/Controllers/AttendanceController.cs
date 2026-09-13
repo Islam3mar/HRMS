@@ -113,6 +113,14 @@ namespace HRMS.Web.Controllers
             return View(records);
         }
 
+
+        [PermissionAuthorize(SystemPage.AttendanceReport, PermissionAction.View)]
+        public async Task<IActionResult> DownloadTemplate()
+        {
+            var bytes = await _attendanceService.GenerateImportTemplateAsync();
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "قالب_استيراد_الحضور_والانصراف.xlsx");
+        }
+
         // ---------- Helpers ----------
         private async Task<AttendanceIndexViewModel> BuildIndexViewModel(AttendanceSearchViewModel search)
         {

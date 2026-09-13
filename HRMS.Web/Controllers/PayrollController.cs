@@ -1,5 +1,6 @@
 ﻿using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
+using HRMS.Domain.Entities;
 using HRMS.Domain.Enums;
 using HRMS.Web.Authorization;
 using HRMS.Web.ViewModels;
@@ -14,6 +15,7 @@ namespace HRMS.Web.Controllers
     public class PayrollController : Controller
     {
         private readonly IPayrollService _payrollService;
+        private readonly IEmployeeService _employeeService;
 
         private static readonly string[] ArabicMonthNames =
         {
@@ -24,6 +26,7 @@ namespace HRMS.Web.Controllers
         public PayrollController(IPayrollService payrollService)
         {
             _payrollService = payrollService;
+            
         }
 
         [PermissionAuthorize(SystemPage.PayrollReport, PermissionAction.View)]
@@ -57,7 +60,6 @@ namespace HRMS.Web.Controllers
             return View(model);
         }
 
-
         // الطباعة نفسها بتعتبر اعتماد: اول مرة يتطبع فيها راتب شهر معين لموظف،
         // بيتحفظ كـ Snapshot ثابت ومتتأثرش قيمته بعد كده حتى لو اتعدلت بيانات الحضور
         [PermissionAuthorize(SystemPage.PayrollReport, PermissionAction.View)]
@@ -70,7 +72,6 @@ namespace HRMS.Web.Controllers
             ViewBag.MonthName = ArabicMonthNames[month - 1];
             return View(row);
         }
-
 
         // اعتماد الراتب من غير طباعة (زرار منفصل فى الجدول)
         [HttpPost]
@@ -88,10 +89,56 @@ namespace HRMS.Web.Controllers
         [PermissionAuthorize(SystemPage.PayrollReport, PermissionAction.Edit)]
         public async Task<IActionResult> Edit(int employeeId, int month, int year)
         {
-            var row = await _payrollService.GetForEditAsync(employeeId, month, year);
-            if (row == null) return NotFound();
+            var model = await BuildEditViewModelAsync(employeeId, month, year);
+            if (model == null) return NotFound();
 
-            var model = new PayrollEditViewModel
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [PermissionAuthorize(SystemPage.PayrollReport, PermissionAction.Edit)]
+        public async Task<IActionResult> Edit(PayrollEditViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                await FillReadOnlyDisplayFieldsAsync(model);
+                return View(model);
+            }
+
+            var input = new PayrollManualEditInput
+            {
+                EmployeeId = model.EmployeeId,
+                Month = model.Month,
+                Year = model.Year,
+                AdditionRatePercentage = model.AdditionRatePercentage,
+                DeductionRatePercentage = model.DeductionRatePercentage
+            };
+
+            var result = await _payrollService.EditApprovedAsync(input);
+
+            if (!result.Success)
+            {
+                if (result.AdditionRateError != null) ModelState.AddModelError(nameof(model.AdditionRatePercentage), result.AdditionRateError);
+                if (result.DeductionRateError != null) ModelState.AddModelError(nameof(model.DeductionRatePercentage), result.DeductionRateError);
+                if (result.NetSalaryError != null) ModelState.AddModelError(string.Empty, result.NetSalaryError);
+                if (result.NotFoundError != null) ModelState.AddModelError(string.Empty, result.NotFoundError);
+
+                await FillReadOnlyDisplayFieldsAsync(model);
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = BuildEditSummaryMessage(result);
+            return RedirectToAction(nameof(Index), new { Month = model.Month, Year = model.Year });
+        }
+
+        // ---------- Helpers ----------
+        private async Task<PayrollEditViewModel?> BuildEditViewModelAsync(int employeeId, int month, int year)
+        {
+            var (row, hourlyRate) = await _payrollService.GetEditContextAsync(employeeId, month, year);
+            if (row == null) return null;
+
+            return new PayrollEditViewModel
             {
                 EmployeeId = row.EmployeeId,
                 Month = row.Month,
@@ -103,49 +150,31 @@ namespace HRMS.Web.Controllers
                 AbsenceDaysCount = row.AbsenceDaysCount,
                 OvertimeHours = row.OvertimeHours,
                 DeductionHours = row.DeductionHours,
-                TotalOvertimeAmount = row.TotalOvertimeAmount,
-                TotalDeductionAmount = row.TotalDeductionAmount,
-                NetSalary = row.NetSalary
+                HourlyRate = hourlyRate,
+                CurrentNetSalary = row.NetSalary,
+                AdditionRatePercentage = 0,
+                DeductionRatePercentage = 0
             };
-
-            return View(model);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [PermissionAuthorize(SystemPage.PayrollReport, PermissionAction.Edit)]
-        public async Task<IActionResult> Edit(PayrollEditViewModel model)
+        private async Task FillReadOnlyDisplayFieldsAsync(PayrollEditViewModel model)
         {
-            if (!ModelState.IsValid)
-                return View(model);
+            var (row, hourlyRate) = await _payrollService.GetEditContextAsync(model.EmployeeId, model.Month, model.Year);
+            if (row == null) return;
 
-            var input = new PayrollManualEditInput
-            {
-                EmployeeId = model.EmployeeId,
-                Month = model.Month,
-                Year = model.Year,
-                TotalOvertimeAmount = model.TotalOvertimeAmount,
-                TotalDeductionAmount = model.TotalDeductionAmount,
-                NetSalary = model.NetSalary
-            };
-
-            var result = await _payrollService.EditApprovedAsync(input);
-
-            if (!result.Success)
-            {
-                if (result.TotalOvertimeError != null) ModelState.AddModelError(nameof(model.TotalOvertimeAmount), result.TotalOvertimeError);
-                if (result.TotalDeductionError != null) ModelState.AddModelError(nameof(model.TotalDeductionAmount), result.TotalDeductionError);
-                if (result.NetSalaryError != null) ModelState.AddModelError(nameof(model.NetSalary), result.NetSalaryError);
-                if (result.NotFoundError != null) ModelState.AddModelError(string.Empty, result.NotFoundError);
-                return View(model);
-            }
-
-            TempData["SuccessMessage"] = BuildEditSummaryMessage(result);
-            return RedirectToAction(nameof(Index), new { Month = model.Month, Year = model.Year });
+            model.EmployeeName = row.EmployeeName;
+            model.DepartmentName = row.DepartmentName;
+            model.BaseSalary = row.BaseSalary;
+            model.AttendanceDaysCount = row.AttendanceDaysCount;
+            model.AbsenceDaysCount = row.AbsenceDaysCount;
+            model.OvertimeHours = row.OvertimeHours;
+            model.DeductionHours = row.DeductionHours;
+            model.HourlyRate = hourlyRate;
+            model.CurrentNetSalary = row.NetSalary;
         }
+        // نفس المعادلة بالظبط المستخدمة فى PayrollService (BuildRow / EditApprovedAsync) - للعرض والمعاينة بس
 
 
-        // ---------- Helpers ----------
         private List<SelectListItem> BuildMonthOptions(int selectedMonth)
         {
             return Enumerable.Range(1, 12)

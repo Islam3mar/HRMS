@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using FluentValidation;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Common;
@@ -15,6 +16,7 @@ namespace HRMS.Application.Services
     public class PayrollService : IPayrollService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IValidator<PayrollManualEditInput> _manualEditValidator;
 
         // تاريخ تأسيس الشركة - نفس التاريخ المستخدم فى EmployeeService (قاعدة رقم 6 هناك)
         // عدّله هنا لو اتغير هناك عشان يفضلوا متطابقين
@@ -22,9 +24,10 @@ namespace HRMS.Application.Services
 
         public int MinimumAllowedYear => CompanyFoundationDate.Year;
 
-        public PayrollService(IUnitOfWork unitOfWork)
+        public PayrollService(IUnitOfWork unitOfWork, IValidator<PayrollManualEditInput> manualEditValidator)
         {
             _unitOfWork = unitOfWork;
+            _manualEditValidator = manualEditValidator;
         }
 
         public async Task<PayrollReportResult> GetReportAsync(PayrollSearchFilter filter)
@@ -148,6 +151,7 @@ namespace HRMS.Application.Services
                 TotalOvertimeAmount = live.TotalOvertimeAmount,
                 TotalDeductionAmount = live.TotalDeductionAmount,
                 NetSalary = live.NetSalary,
+                HourlyRate = live.HourlyRate,
                 ApprovedAt = DateTime.Now
             };
 
@@ -176,17 +180,7 @@ namespace HRMS.Application.Services
 
         public async Task<PayrollEditResult> EditApprovedAsync(PayrollManualEditInput input)
         {
-            var result = new PayrollEditResult();
-
-            if (input.TotalOvertimeAmount < 0)
-                result.TotalOvertimeError = "من فضلك ادخل قيمة صحيحة اكبر من او تساوى صفر";
-
-            if (input.TotalDeductionAmount < 0)
-                result.TotalDeductionError = "من فضلك ادخل قيمة صحيحة اكبر من او تساوى صفر";
-
-            if (input.NetSalary <= 0)   // ← غيّرت من < 0 لـ <= 0
-                result.NetSalaryError = "الصافى لا يمكن ان يكون صفر او اقل، من فضلك ادخل قيمة صحيحة";
-
+            var result = await ValidateManualEditAsync(input);
             if (result.HasErrors) return result;
 
             var record = await _unitOfWork.PayrollRecords.GetByEmployeeAndMonthAsync(input.EmployeeId, input.Month, input.Year);
@@ -196,14 +190,35 @@ namespace HRMS.Application.Services
                 return result;
             }
 
-            // نسجّل القيم القديمة قبل ما نعدّل عليها
+            // سجلات اتعمدت قبل ما نضيف HourlyRate هتكون قيمتها صفر - نحسبها دلوقتي مرة واحدة على أساس
+            // ايام الشهر القياسية بالكامل (مش عدد الأيام اللي كانت عدت وقت الاعتماد القديم) ونثبتها فى السجل
+            if (record.HourlyRate <= 0)
+            {
+                record.HourlyRate = await RecalculateStandardHourlyRateAsync(input.EmployeeId, input.Month, input.Year);
+            }
+
+            var hourlyRate = record.HourlyRate;
+
+            var overtimeHourRate = hourlyRate * (1 + input.AdditionRatePercentage / 100m);
+            var deductionHourRate = hourlyRate * (input.DeductionRatePercentage / 100m);
+
+            var newTotalOvertimeAmount = Math.Round(record.OvertimeHours * overtimeHourRate, 2);
+            var newTotalDeductionAmount = Math.Round(record.DeductionHours * deductionHourRate, 2);
+            var newNetSalary = record.BaseSalary + newTotalOvertimeAmount - newTotalDeductionAmount;
+
+            if (newNetSalary <= 0)
+            {
+                result.NetSalaryError = "الصافى الناتج من النسب دي صفر او اقل، من فضلك ادخل نسب مختلفة";
+                return result;
+            }
+
             result.PreviousTotalOvertimeAmount = record.TotalOvertimeAmount;
             result.PreviousTotalDeductionAmount = record.TotalDeductionAmount;
             result.PreviousNetSalary = record.NetSalary;
 
-            record.TotalOvertimeAmount = input.TotalOvertimeAmount;
-            record.TotalDeductionAmount = input.TotalDeductionAmount;
-            record.NetSalary = input.NetSalary;
+            record.TotalOvertimeAmount = newTotalOvertimeAmount;
+            record.TotalDeductionAmount = newTotalDeductionAmount;
+            record.NetSalary = newNetSalary;
 
             _unitOfWork.PayrollRecords.Update(record);
             await _unitOfWork.SaveChangesAsync();
@@ -213,7 +228,48 @@ namespace HRMS.Application.Services
             return result;
         }
 
+
+        public async Task<(PayrollRowDto? Row, decimal HourlyRate)> GetEditContextAsync(int employeeId, int month, int year)
+        {
+            var row = await GetForEditAsync(employeeId, month, year);
+            if (row == null) return (null, 0m);
+
+            if (row.HourlyRate <= 0)
+            {
+                var record = await _unitOfWork.PayrollRecords.GetByEmployeeAndMonthAsync(employeeId, month, year);
+                if (record != null)
+                {
+                    record.HourlyRate = await RecalculateStandardHourlyRateAsync(employeeId, month, year);
+                    _unitOfWork.PayrollRecords.Update(record);
+                    await _unitOfWork.SaveChangesAsync();
+                    row.HourlyRate = record.HourlyRate;
+                }
+            }
+
+            return (row, row.HourlyRate);
+        }
         // ---------- Helpers ----------
+
+
+        private async Task<PayrollEditResult> ValidateManualEditAsync(PayrollManualEditInput input)
+        {
+            var result = new PayrollEditResult();
+
+            var validation = await _manualEditValidator.ValidateAsync(input);
+            if (validation.IsValid) return result;
+
+            foreach (var failure in validation.Errors)
+            {
+                switch (failure.PropertyName)
+                {
+                    case nameof(PayrollManualEditInput.AdditionRatePercentage): result.AdditionRateError = failure.ErrorMessage; break;
+                    case nameof(PayrollManualEditInput.DeductionRatePercentage): result.DeductionRateError = failure.ErrorMessage; break;
+                }
+            }
+
+            return result;
+        }
+
         private static (DateTime start, DateTime end) GetMonthRange(int month, int year)
         {
             var start = new DateTime(year, month, 1);
@@ -237,25 +293,26 @@ namespace HRMS.Application.Services
             Month = record.Month,
             Year = record.Year,
             IsApproved = true,
+            HourlyRate = record.HourlyRate,
             ApprovedAt = record.ApprovedAt
         };
 
         private static PayrollRowDto BuildRow(
-            Employee employee,
-            List<AttendanceRecord> employeeRecords,
-            GeneralSettings? settings,
-            HashSet<DateTime> holidays,
-            DateTime monthStart,
-            DateTime monthEnd,
-            int month,
-            int year)
+      Employee employee,
+      List<AttendanceRecord> employeeRecords,
+      GeneralSettings? settings,
+      HashSet<DateTime> holidays,
+      DateTime monthStart,
+      DateTime monthEnd,
+      int month,
+      int year)
         {
-            var additionRate = settings?.AdditionRatePerHour ?? 0m;
-            var deductionRate = settings?.DeductionRatePerHour ?? 0m;
+            var additionPercentage = settings?.AdditionRatePercentage ?? 0m;
+            var deductionPercentage = settings?.DeductionRatePercentage ?? 0m;
             var weeklyHoliday1 = settings?.WeeklyHoliday1;
             var weeklyHoliday2 = settings?.WeeklyHoliday2;
 
-            // احسب عدد ايام الشغل الفعلية فى الشهر (من غير الاجازات الاسبوعية و الرسمية)
+            // احسب عدد ايام الشغل الفعلية اللي "عدت" فى الشهر (من غير الاجازات الاسبوعية والرسمية)
             // لو الشهر الحالى لسه ماخلصش، نوقف عند النهاردة (مينفعش نحسب غياب فى ايام لسه ما جاتش)
             var effectiveEnd = monthEnd;
             var today = DateTime.Today;
@@ -264,17 +321,21 @@ namespace HRMS.Application.Services
             else if (monthStart > today)
                 effectiveEnd = monthStart.AddDays(-1); // شهر فى المستقبل بالكامل: صفر ايام شغل
 
-            var workingDays = 0;
-            for (var day = monthStart; day <= effectiveEnd; day = day.AddDays(1))
-            {
-                if (weeklyHoliday1.HasValue && day.DayOfWeek == weeklyHoliday1.Value) continue;
-                if (weeklyHoliday2.HasValue && day.DayOfWeek == weeklyHoliday2.Value) continue;
-                if (holidays.Contains(day.Date)) continue;
-                workingDays++;
-            }
+            // العد يبدأ من اتنين اقصاهم - أول الشهر او تاريخ التعاقد ايهما بعد
+            var effectiveStart = monthStart > employee.ContractDate.Date ? monthStart : employee.ContractDate.Date;
+
+            // أيام الشغل اللي فعلاً عدت لحد دلوقتي - لحساب الحضور/الغياب بس
+            var elapsedWorkingDays = CountWorkingDays(effectiveStart, effectiveEnd, weeklyHoliday1, weeklyHoliday2, holidays);
+
+            // أيام الشغل القياسية للشهر بالكامل - لحساب سعر الساعة بس، ثابتة ومتتأثرش بتاريخ الاعتماد
+            // (لو الموظف اتعاقد فى نص الشهر، بنحسب من تاريخ التعاقد بس لنهاية الشهر عشان سعر الساعة يفضل منطقي لشهر التعيين)
+            var standardRangeStart = monthStart > employee.ContractDate.Date ? monthStart : employee.ContractDate.Date;
+            var standardWorkingDaysInMonth = standardRangeStart <= monthEnd
+                ? CountWorkingDays(standardRangeStart, monthEnd, weeklyHoliday1, weeklyHoliday2, holidays)
+                : 0;
 
             var attendanceDays = employeeRecords.Select(r => r.Date.Date).Distinct().Count();
-            var absenceDays = Math.Max(0, workingDays - attendanceDays);
+            var absenceDays = Math.Max(0, elapsedWorkingDays - attendanceDays);
 
             decimal overtimeHours = 0;
             decimal deductionHours = 0;
@@ -288,8 +349,18 @@ namespace HRMS.Application.Services
                     overtimeHours += (decimal)(record.CheckOutTime - employee.DepartureTime).TotalHours;
             }
 
-            var totalOvertimeAmount = Math.Round(overtimeHours * additionRate, 2);
-            var totalDeductionAmount = Math.Round(deductionHours * deductionRate, 2);
+            // سعر الساعة العادى للموظف = الراتب ÷ ساعات الشغل القياسية للشهر بالكامل (مش الأيام اللي عدت بس)
+            var dailyWorkHours = (decimal)(employee.DepartureTime - employee.AttendanceTime).TotalHours;
+            if (dailyWorkHours <= 0) dailyWorkHours = 8; // احتياطى لو موظف بيانات مواعيده غلط
+
+            var standardMonthlyHours = standardWorkingDaysInMonth * dailyWorkHours;
+            var hourlyRate = standardMonthlyHours > 0 ? employee.Salary / standardMonthlyHours : 0m;
+
+            var overtimeHourRate = hourlyRate * (1 + additionPercentage / 100m);   // بونص فوق السعر العادى
+            var deductionHourRate = hourlyRate * (deductionPercentage / 100m);     // نسبة من السعر العادى
+
+            var totalOvertimeAmount = Math.Round(overtimeHours * overtimeHourRate, 2);
+            var totalDeductionAmount = Math.Round(deductionHours * deductionHourRate, 2);
             var netSalary = employee.Salary + totalOvertimeAmount - totalDeductionAmount;
 
             return new PayrollRowDto
@@ -302,6 +373,7 @@ namespace HRMS.Application.Services
                 AbsenceDaysCount = absenceDays,
                 OvertimeHours = Math.Round(overtimeHours, 2),
                 DeductionHours = Math.Round(deductionHours, 2),
+                HourlyRate = Math.Round(hourlyRate, 2),
                 TotalOvertimeAmount = totalOvertimeAmount,
                 TotalDeductionAmount = totalDeductionAmount,
                 NetSalary = netSalary,
@@ -310,6 +382,44 @@ namespace HRMS.Application.Services
                 IsApproved = false,
                 ApprovedAt = null
             };
+        }
+        // ميثود مساعدة جديدة - بتحسب عدد ايام الشغل بين تاريخين مع استبعاد الاجازات الاسبوعية والرسمية
+        private static int CountWorkingDays(DateTime start, DateTime end, DayOfWeek? holiday1, DayOfWeek? holiday2, HashSet<DateTime> officialHolidays)
+        {
+            if (start > end) return 0;
+
+            var count = 0;
+            for (var day = start; day <= end; day = day.AddDays(1))
+            {
+                if (holiday1.HasValue && day.DayOfWeek == holiday1.Value) continue;
+                if (holiday2.HasValue && day.DayOfWeek == holiday2.Value) continue;
+                if (officialHolidays.Contains(day.Date)) continue;
+                count++;
+            }
+            return count;
+        }
+        private async Task<decimal> RecalculateStandardHourlyRateAsync(int employeeId, int month, int year)
+        {
+            var schedule = await _unitOfWork.Employees.GetScheduleAsync(employeeId);
+            if (schedule == null) return 0m;
+
+            var settings = await _unitOfWork.GeneralSettings.GetSingleAsync();
+            var holidays = (await _unitOfWork.OfficialHolidays.GetAllOrderedByDateAsync())
+                .Select(h => h.Date.Date)
+                .ToHashSet();
+
+            var (monthStart, monthEnd) = GetMonthRange(month, year);
+            var standardRangeStart = monthStart > schedule.ContractDate.Date ? monthStart : schedule.ContractDate.Date;
+
+            var standardWorkingDaysInMonth = standardRangeStart <= monthEnd
+                ? CountWorkingDays(standardRangeStart, monthEnd, settings?.WeeklyHoliday1, settings?.WeeklyHoliday2, holidays)
+                : 0;
+
+            var dailyWorkHours = (decimal)(schedule.DepartureTime - schedule.AttendanceTime).TotalHours;
+            if (dailyWorkHours <= 0) dailyWorkHours = 8;
+
+            var standardMonthlyHours = standardWorkingDaysInMonth * dailyWorkHours;
+            return standardMonthlyHours > 0 ? Math.Round(schedule.Salary / standardMonthlyHours, 2) : 0m;
         }
     }
 }

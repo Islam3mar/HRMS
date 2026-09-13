@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using HRMS.Application.Common;
 using HRMS.Application.Interfaces;
 using HRMS.Application.Services;
+using HRMS.Application.Validators;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HRMS.Application
@@ -21,6 +23,12 @@ namespace HRMS.Application
             services.AddScoped<IPayrollService, PayrollService>();
 
             services.AddSingleton<IEncryptionService, AesEncryptionService>();
+
+
+            // بيسجّل كل الـ Validators (AbstractValidator<T>) الموجودة فى نفس الـ Assembly تلقائيًا
+            services.AddValidatorsFromAssemblyContaining<EmployeeInputValidator>();
+
+
 
             // AutoMapper 13+ بيشتغل بس بالـ Action overload، فبنقوله يدوّر
             // على كل الـ Profiles الموجودة في نفس الـ Assembly بتاع HRMS.Application
