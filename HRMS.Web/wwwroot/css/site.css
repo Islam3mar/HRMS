@@ -1,6 +1,507 @@
+/* =========================================================
+   HRMS.Web — Design System
+   مبني على هوية Pioneers Solutions (التيل + النقطة البرتقالية)
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
+
+:root {
+    --teal-900: #0B3D4C;
+    --teal-700: #146C86;
+    --teal-500: #3D93AC;
+    --teal-100: #E4F0F3;
+    --accent: #E8593F;
+    --accent-hover: #D14A32;
+    --ink-900: #1F2933;
+    --ink-500: #5A6B75;
+    --ink-300: #93A3AB;
+    --surface-0: #FFFFFF;
+    --surface-100: #F4F7F8;
+    --border: #E1E8EA;
+    --success: #1F8A5A;
+    --success-bg: #E7F5EE;
+    --danger: #C4423A;
+    --danger-bg: #FBEAE8;
+    --warning: #A9720C;
+    --warning-bg: #FBF1DE;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 2px rgba(11, 61, 76, 0.06), 0 1px 12px rgba(11, 61, 76, 0.04);
+    --sidebar-width: 250px;
+    --sidebar-width-collapsed: 76px;
+    --topbar-height: 64px;
+}
+
 * {
     box-sizing: border-box;
 }
+
+html, body {
+    height: 100%;
+}
+
+body {
+    font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+    background-color: var(--surface-100);
+    color: var(--ink-900);
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    color: var(--teal-900);
+}
+
+a {
+    color: var(--teal-700);
+    text-decoration: none;
+}
+
+    a:hover {
+        color: var(--accent);
+    }
+
+/* ========================= App Shell ========================= */
+
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    background: var(--teal-900);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: width 0.2s ease, margin 0.2s ease;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 22px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+}
+
+    .sidebar-brand img {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #fff;
+        flex-shrink: 0;
+    }
+
+    .sidebar-brand span {
+        font-weight: 700;
+        font-size: 16px;
+        color: #fff;
+    }
+
+.sidebar-group {
+    padding: 18px 14px 6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.45);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.sidebar-nav {
+    list-style: none;
+    margin: 0;
+    padding: 0 10px;
+}
+
+    .sidebar-nav .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        margin-bottom: 2px;
+        border-radius: var(--radius-sm);
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 14.5px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+        .sidebar-nav .nav-link i {
+            font-size: 16px;
+            width: 18px;
+            text-align: center;
+            opacity: 0.85;
+            flex-shrink: 0;
+        }
+
+        .sidebar-nav .nav-link:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .sidebar-nav .nav-link.active {
+            background: var(--teal-700);
+            color: #fff;
+        }
+
+/* ---- وضع الطي (Mini Sidebar) ---- */
+.app-shell.sidebar-collapsed .sidebar {
+    width: var(--sidebar-width-collapsed);
+}
+
+.app-shell.sidebar-collapsed .sidebar-brand span,
+.app-shell.sidebar-collapsed .sidebar-group,
+.app-shell.sidebar-collapsed .sidebar-nav .nav-link span {
+    display: none;
+}
+
+.app-shell.sidebar-collapsed .sidebar-brand {
+    justify-content: center;
+    padding: 22px 10px;
+}
+
+.app-shell.sidebar-collapsed .sidebar-nav .nav-link {
+    justify-content: center;
+    padding: 10px;
+}
+
+    .app-shell.sidebar-collapsed .sidebar-nav .nav-link i {
+        width: auto;
+    }
+
+.app-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.topbar {
+    height: var(--topbar-height);
+    background: var(--surface-0);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    gap: 14px;
+}
+
+.topbar-start {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 14px;
+    color: var(--ink-500);
+}
+
+/* زرار الطي - ديسكتوب */
+.collapse-toggle {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--ink-900);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+}
+
+    .collapse-toggle:hover {
+        background: var(--surface-100);
+    }
+
+/* زرار الهامبرجر - موبايل بس */
+.sidebar-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: var(--ink-900);
+}
+
+.app-content {
+    padding: 28px 32px;
+    flex: 1;
+}
+
+/* ========================= Buttons ========================= */
+
+.btn {
+    font-family: inherit;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    padding: 8px 18px;
+    font-size: 14px;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background-color: var(--teal-700);
+    border-color: var(--teal-700);
+}
+
+    .btn-primary:hover, .btn-primary:focus {
+        background-color: var(--teal-900);
+        border-color: var(--teal-900);
+    }
+
+.btn-brand, a.btn-brand {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+    .btn-brand:hover, .btn-brand:focus {
+        background-color: var(--accent-hover);
+        border-color: var(--accent-hover);
+        color: #fff;
+    }
+
+.btn-outline-primary {
+    color: var(--teal-700);
+    border-color: var(--teal-500);
+    background: transparent;
+}
+
+    .btn-outline-primary:hover {
+        background-color: var(--teal-700);
+        border-color: var(--teal-700);
+        color: #fff;
+    }
+
+.btn-outline-secondary {
+    color: var(--ink-500);
+    border-color: var(--border);
+}
+
+    .btn-outline-secondary:hover {
+        background-color: var(--surface-100);
+        color: var(--ink-900);
+        border-color: var(--ink-300);
+    }
+
+.btn-outline-danger {
+    color: var(--danger);
+    border-color: var(--danger);
+    background: transparent;
+}
+
+    .btn-outline-danger:hover {
+        background-color: var(--danger);
+        color: #fff;
+    }
+
+.btn-danger {
+    background-color: var(--danger);
+    border-color: var(--danger);
+}
+
+.btn-secondary {
+    background-color: var(--ink-500);
+    border-color: var(--ink-500);
+}
+
+.btn-sm {
+    padding: 5px 12px;
+    font-size: 13px;
+}
+
+.btn-link {
+    text-decoration: none;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface-0);
+    color: var(--ink-500);
+    padding: 0;
+}
+
+    .btn-icon:hover {
+        background: var(--teal-100);
+        color: var(--teal-700);
+        border-color: var(--teal-500);
+    }
+
+    .btn-icon.danger:hover {
+        background: var(--danger-bg);
+        color: var(--danger);
+        border-color: var(--danger);
+    }
+
+/* ========================= Forms ========================= */
+
+.form-label {
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--ink-500);
+    margin-bottom: 6px;
+}
+
+.form-control, .form-select {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    font-size: 14.5px;
+    background-color: var(--surface-0);
+    font-family: inherit;
+    color: var(--ink-900);
+}
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--teal-500);
+        box-shadow: 0 0 0 3px var(--teal-100);
+        outline: none;
+    }
+
+    .form-control[readonly] {
+        background-color: var(--surface-100);
+        color: var(--ink-500);
+    }
+
+.text-danger {
+    color: var(--danger) !important;
+    font-size: 13px;
+}
+
+/* ========================= Cards ========================= */
+
+.card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.card-header {
+    background: var(--surface-0);
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    color: var(--teal-900);
+    padding: 16px 20px;
+}
+
+.card-body {
+    padding: 22px;
+}
+
+/* ========================= Tables ========================= */
+
+.table {
+    background: var(--surface-0);
+    margin-bottom: 0;
+}
+
+    .table thead th {
+        background: var(--surface-100);
+        color: var(--ink-500);
+        font-weight: 600;
+        font-size: 13px;
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+        white-space: nowrap;
+    }
+
+    .table tbody td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+        font-size: 14.5px;
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--surface-100);
+    }
+
+.table-wrap {
+    background: var(--surface-0);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+/* ========================= Badges / Alerts ========================= */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.status-approved {
+    background: var(--success-bg);
+    color: var(--success);
+}
+
+.status-pending {
+    background: var(--warning-bg);
+    color: var(--warning);
+}
+
+.alert {
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 14px;
+}
+
+.alert-success {
+    background: var(--success-bg);
+    color: var(--success);
+}
+
+.alert-danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+.alert-warning {
+    background: var(--warning-bg);
+    color: var(--warning);
+}
+
+.breadcrumb {
+    font-size: 13.5px;
+    color: var(--ink-500);
+}
+
+/* ========================= Login Page ========================= */
 
 body.login-body {
     margin: 0;
@@ -8,25 +509,25 @@ body.login-body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #f4f6f8;
-    font-family: "Segoe UI", Tahoma, sans-serif;
+    background: linear-gradient(160deg, var(--teal-900) 0%, var(--teal-700) 100%);
+    font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
 }
 
 .login-card {
-    background: #ffffff;
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    background: var(--surface-0);
+    padding: 44px 40px;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
     width: 380px;
 }
 
 .login-logo {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
 }
 
     .login-logo img {
-        max-width: 120px;
+        max-width: 96px;
     }
 
 .form-group {
@@ -36,32 +537,20 @@ body.login-body {
     .form-group label {
         display: block;
         margin-bottom: 6px;
-        font-size: 14px;
-        color: #333;
-    }
-
-.form-control {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-    .form-control:focus {
-        outline: none;
-        border-color: #1c6ea4;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--ink-500);
     }
 
 .field-error {
-    color: #d9534f;
+    color: var(--danger);
     font-size: 12px;
     display: block;
     margin-top: 4px;
 }
 
 .validation-summary ul {
-    color: #d9534f;
+    color: var(--danger);
     font-size: 13px;
     padding-right: 18px;
     margin-bottom: 10px;
@@ -70,15 +559,51 @@ body.login-body {
 .btn-signin {
     width: 100%;
     padding: 12px;
-    background-color: #1c6ea4;
+    background-color: var(--accent);
     color: #fff;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     font-size: 15px;
+    font-weight: 700;
     cursor: pointer;
     margin-top: 8px;
+    font-family: inherit;
 }
 
     .btn-signin:hover {
-        background-color: #155a87;
+        background-color: var(--accent-hover);
     }
+
+/* ========================= Responsive ========================= */
+
+@media (max-width: 900px) {
+    .sidebar {
+        position: fixed;
+        z-index: 40;
+        margin-right: calc(-1 * var(--sidebar-width));
+        width: var(--sidebar-width) !important;
+    }
+
+    .app-shell.sidebar-open .sidebar {
+        margin-right: 0;
+        box-shadow: 0 0 0 100vw rgba(0,0,0,0.35);
+    }
+
+    .app-shell.sidebar-open .sidebar-brand span,
+    .app-shell.sidebar-open .sidebar-group,
+    .app-shell.sidebar-open .sidebar-nav .nav-link span {
+        display: inline;
+    }
+
+    .sidebar-toggle {
+        display: inline-block;
+    }
+
+    .collapse-toggle {
+        display: none;
+    }
+
+    .app-content {
+        padding: 20px;
+    }
+}

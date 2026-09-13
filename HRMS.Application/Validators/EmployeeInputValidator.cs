@@ -26,9 +26,9 @@ namespace HRMS.Application.Validators
             RuleFor(x => x.Nationality).NotEmpty().WithMessage("هذا الحقل مطلوب");
 
             RuleFor(x => x.PhoneNumber)
-                .NotEmpty().WithMessage("هذا الحقل مطلوب")
-                .Matches(@"^\d{11}$").WithMessage("رقم التليفون يجب ان يتكون من 11 رقم")
-                    .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber));
+     .NotEmpty().WithMessage("هذا الحقل مطلوب")
+     .Matches(@"^01[0125]\d{8}$").WithMessage("رقم التليفون غير صحيح، يجب ان يبدأ بـ 010 أو 011 أو 012 أو 015 ويتكون من 11 رقم")
+         .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber));
 
             RuleFor(x => x.NationalId)
                 .NotEmpty().WithMessage("هذا الحقل مطلوب")

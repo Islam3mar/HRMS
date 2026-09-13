@@ -1,48 +1,47 @@
 ﻿@model HRMS.Web.ViewModels.PayrollIndexViewModel
 @{
-    ViewData["Title"] = "روانب الموظفين";
+    ViewData["Title"] = "رواتب الموظفين";
 }
 
-<div dir="rtl">
-    <h4 class="text-center fw-bold mb-4">رواتب الموظفين</h4>
+<h4 class="fw-bold mb-4">رواتب الموظفين</h4>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-    }
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
 
-    @if (Model.SearchError != null)
-    {
-        <div class="alert alert-warning">@Model.SearchError</div>
-    }
-    @if (Model.YearError != null)
-    {
-        <div class="alert alert-warning">@Model.YearError</div>
-    }
+@if (Model.SearchError != null)
+{
+    <div class="alert alert-warning">@Model.SearchError</div>
+}
+@if (Model.YearError != null)
+{
+    <div class="alert alert-warning">@Model.YearError</div>
+}
 
-    <!-- شريط البحث والفلترة -->
-    <form asp-controller="Payroll" asp-action="Index" method="get" class="row g-2 align-items-end mb-3">
-        <div class="col-md-6">
-            <label class="form-label">بحث باسم الموظف</label>
-            <input asp-for="Search.EmployeeName" class="form-control" placeholder="بحث باسم الموظف" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">شهر</label>
-            <select asp-for="Search.Month" asp-items="Model.MonthOptions" class="form-select"></select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">سنة</label>
-            <select asp-for="Search.Year" asp-items="Model.YearOptions" class="form-select"></select>
-        </div>
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-outline-secondary w-100">
-                <i class="bi bi-search"></i> بحث
-            </button>
-        </div>
-    </form>
+<form asp-controller="Payroll" asp-action="Index" method="get" class="row g-2 align-items-end mb-3">
+    <div class="col-md-6">
+        <label class="form-label">بحث باسم الموظف</label>
+        <input asp-for="Search.EmployeeName" class="form-control" placeholder="بحث باسم الموظف" />
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">شهر</label>
+        <select asp-for="Search.Month" asp-items="Model.MonthOptions" class="form-select"></select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">سنة</label>
+        <select asp-for="Search.Year" asp-items="Model.YearOptions" class="form-select"></select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-outline-secondary w-100">
+            <i class="bi bi-search"></i> بحث
+        </button>
+    </div>
+</form>
 
-    <table class="table table-bordered table-hover align-middle">
-        <thead class="table-light">
+<div class="table-wrap">
+    <table class="table align-middle mb-0">
+        <thead>
             <tr>
                 <th class="text-center">العمليات</th>
                 <th>الصافى</th>
@@ -61,14 +60,14 @@
             @if (!Model.Rows.Any())
             {
                 <tr>
-                    <td colspan="11" class="text-center text-muted py-4">لا توجد بيانات لعرضها</td>
+                    <td colspan="11" class="text-center py-4" style="color:var(--ink-500)">لا توجد بيانات لعرضها</td>
                 </tr>
             }
             @foreach (var row in Model.Rows)
             {
                 <tr>
                     <td class="text-center">
-                        <a class="btn btn-link text-dark p-1"
+                        <a class="btn-icon"
                            asp-action="Edit"
                            asp-route-employeeId="@row.EmployeeId"
                            asp-route-month="@row.Month"
@@ -76,7 +75,7 @@
                            title="تعديل الراتب">
                             <i class="bi bi-pencil-fill"></i>
                         </a>
-                        <a class="btn btn-link text-dark p-1"
+                        <a class="btn-icon"
                            asp-action="Print"
                            asp-route-employeeId="@row.EmployeeId"
                            asp-route-month="@row.Month"

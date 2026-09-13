@@ -5,7 +5,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="mb-0">مجموعة المستخدمين</h3>
-    <a asp-action="Create" class="btn btn-primary">+ اضافة مجموعة جديدة</a>
+    <a asp-action="Create" class="btn btn-brand">+ اضافة مجموعة جديدة</a>
 </div>
 
 @if (TempData["SuccessMessage"] != null)
@@ -15,28 +15,31 @@
 
 @if (!Model.Items.Any())
 {
-    <div class="alert alert-info">لا توجد مجموعات مضافة حتى الآن.</div>
+    <div class="alert alert-warning">لا توجد مجموعات مضافة حتى الآن.</div>
 }
 else
 {
-    <table class="table table-bordered align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>اسم المجموعة</th>
-                <th>عدد الصفحات المسموح بها</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var role in Model.Items)
-            {
+    <div class="table-wrap">
+        <table class="table align-middle mb-0">
+            <thead>
                 <tr>
-                    <td>@role.Name</td>
-                    <td>@role.Permissions.Count</td>
+                    <th>اسم المجموعة</th>
+                    <th>عدد الصفحات المسموح بها</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var role in Model.Items)
+                {
+                    <tr>
+                        <td>@role.Name</td>
+                        <td>@role.Permissions.Count</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
+
 @if (Model.TotalPages > 1)
 {
     <nav class="mt-3">
