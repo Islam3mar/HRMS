@@ -19,7 +19,7 @@ namespace HRMS.Web.ViewModels
 
         [Display(Name = "رقم تليفون")]
         [Required(ErrorMessage = "هذا الحقل مطلوب")]
-        [RegularExpression(@"^\d{11}$", ErrorMessage = "رقم التليفون يجب ان يتكون من 11 رقم")]
+        [RegularExpression(@"^01[0125]\d{8}$", ErrorMessage = "رقم التليفون غير صحيح، يجب ان يبدأ بـ 010 أو 011 أو 012 أو 015 ويتكون من 11 رقم")]
         public string PhoneNumber { get; set; } = string.Empty;
 
         [Display(Name = "النوع")]

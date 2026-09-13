@@ -3,95 +3,93 @@
     ViewData["Title"] = "تعديل الراتب";
 }
 
-<div dir="rtl">
-    <h4 class="text-center fw-bold mb-4">تعديل راتب @Model.EmployeeName</h4>
+<h4 class="fw-bold mb-4">تعديل راتب @Model.EmployeeName</h4>
 
-    <div class="card">
-        <div class="card-body">
-            <form asp-controller="Payroll" asp-action="Edit" method="post">
-                @Html.AntiForgeryToken()
-                <input type="hidden" asp-for="EmployeeId" />
-                <input type="hidden" asp-for="Month" />
-                <input type="hidden" asp-for="Year" />
+<div class="card">
+    <div class="card-body">
+        <form asp-controller="Payroll" asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="EmployeeId" />
+            <input type="hidden" asp-for="Month" />
+            <input type="hidden" asp-for="Year" />
 
-                <div asp-validation-summary="All" class="text-danger"></div>
+            <div asp-validation-summary="All" class="text-danger"></div>
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">اسم الموظف</label>
-                        <input class="form-control" value="@Model.EmployeeName" readonly />
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">القسم</label>
-                        <input class="form-control" value="@Model.DepartmentName" readonly />
-                    </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">اسم الموظف</label>
+                    <input class="form-control" value="@Model.EmployeeName" readonly />
                 </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <label class="form-label">الراتب الاساسى</label>
-                        <input class="form-control" value="@Model.BaseSalary.ToString("N2")" readonly />
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">عدد ايام الحضور</label>
-                        <input class="form-control" value="@Model.AttendanceDaysCount" readonly />
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">عدد ايام الغياب</label>
-                        <input class="form-control" value="@Model.AbsenceDaysCount" readonly />
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">سعر الساعة العادى</label>
-                        <input class="form-control" value="@Model.HourlyRate.ToString("N2")" readonly />
-                    </div>
+                <div class="col-md-6">
+                    <label class="form-label">القسم</label>
+                    <input class="form-control" value="@Model.DepartmentName" readonly />
                 </div>
+            </div>
 
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <label class="form-label">ساعات الاضافى</label>
-                        <input class="form-control" value="@Model.OvertimeHours.ToString("N2")" readonly />
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">ساعات الخصم</label>
-                        <input class="form-control" value="@Model.DeductionHours.ToString("N2")" readonly />
-                    </div>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">الراتب الاساسى</label>
+                    <input class="form-control" value="@Model.BaseSalary.ToString("N2")" readonly />
                 </div>
-
-                <hr />
-                <p class="text-muted small">
-                    ادخل نسبة الاضافة والخصم كنسبة مئوية من سعر الساعة (بنفس منطق الاعدادات العامة)،
-                    والمبالغ والصافى هتتحسب تلقائيًا وتتحفظ فوق الراتب المعتمد فوراً.
-                </p>
-
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label asp-for="AdditionRatePercentage" class="form-label"></label>
-                        <div class="input-group">
-                            <input asp-for="AdditionRatePercentage" class="form-control" id="additionRateInput" />
-                            <span class="input-group-text">%</span>
-                        </div>
-                        <span asp-validation-for="AdditionRatePercentage" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-4">
-                        <label asp-for="DeductionRatePercentage" class="form-label"></label>
-                        <div class="input-group">
-                            <input asp-for="DeductionRatePercentage" class="form-control" id="deductionRateInput" />
-                            <span class="input-group-text">%</span>
-                        </div>
-                        <span asp-validation-for="DeductionRatePercentage" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">الصافى المتوقع (معاينة فقط)</label>
-                        <input class="form-control" id="netSalaryPreview" readonly />
-                    </div>
+                <div class="col-md-3">
+                    <label class="form-label">عدد ايام الحضور</label>
+                    <input class="form-control" value="@Model.AttendanceDaysCount" readonly />
                 </div>
-
-                <div class="text-start">
-                    <a asp-action="Index" class="btn btn-outline-secondary">رجوع</a>
-                    <button type="submit" class="btn" style="background-color:#ff6b81; color:white;">حفظ التعديل</button>
+                <div class="col-md-3">
+                    <label class="form-label">عدد ايام الغياب</label>
+                    <input class="form-control" value="@Model.AbsenceDaysCount" readonly />
                 </div>
-            </form>
-        </div>
+                <div class="col-md-3">
+                    <label class="form-label">سعر الساعة العادى</label>
+                    <input class="form-control" value="@Model.HourlyRate.ToString("N2")" readonly />
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">ساعات الاضافى</label>
+                    <input class="form-control" value="@Model.OvertimeHours.ToString("N2")" readonly />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">ساعات الخصم</label>
+                    <input class="form-control" value="@Model.DeductionHours.ToString("N2")" readonly />
+                </div>
+            </div>
+
+            <hr />
+            <p class="small" style="color:var(--ink-500)">
+                ادخل نسبة الاضافة والخصم كنسبة مئوية من سعر الساعة (بنفس منطق الاعدادات العامة)،
+                والمبالغ والصافى هتتحسب تلقائيًا وتتحفظ فوق الراتب المعتمد فوراً.
+            </p>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label asp-for="AdditionRatePercentage" class="form-label"></label>
+                    <div class="input-group">
+                        <input asp-for="AdditionRatePercentage" class="form-control" id="additionRateInput" />
+                        <span class="input-group-text">%</span>
+                    </div>
+                    <span asp-validation-for="AdditionRatePercentage" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="DeductionRatePercentage" class="form-label"></label>
+                    <div class="input-group">
+                        <input asp-for="DeductionRatePercentage" class="form-control" id="deductionRateInput" />
+                        <span class="input-group-text">%</span>
+                    </div>
+                    <span asp-validation-for="DeductionRatePercentage" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">الصافى المتوقع (معاينة فقط)</label>
+                    <input class="form-control" id="netSalaryPreview" readonly />
+                </div>
+            </div>
+
+            <div class="text-start">
+                <a asp-action="Index" class="btn btn-outline-secondary">رجوع</a>
+                <button type="submit" class="btn btn-brand">حفظ التعديل</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -100,7 +98,6 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        // معاينة فورية بس - الحساب الفعلي والمعتمد بيحصل فى السيرفر بنفس المعادلة بالظبط
         const baseSalary = @Model.BaseSalary.ToString(System.Globalization.CultureInfo.InvariantCulture);
         const hourlyRate = @Model.HourlyRate.ToString(System.Globalization.CultureInfo.InvariantCulture);
         const overtimeHours = @Model.OvertimeHours.ToString(System.Globalization.CultureInfo.InvariantCulture);

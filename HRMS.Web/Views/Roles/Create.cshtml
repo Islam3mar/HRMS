@@ -18,9 +18,9 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <button type="button" id="privateCustomBtn" class="btn btn-outline-secondary" disabled>Private custom</button>
-            <button type="button" id="selectAllBtn" class="btn btn-primary">كل الصلاحيات</button>
+            <button type="button" id="selectAllBtn" class="btn btn-outline-primary">كل الصلاحيات</button>
         </div>
-        <button type="submit" class="btn btn-danger">SAVE</button>
+        <button type="submit" class="btn btn-brand">حفظ</button>
     </div>
 
     <div class="form-group mb-4">
@@ -29,33 +29,35 @@
         <span asp-validation-for="Name" class="text-danger"></span>
     </div>
 
-    <table class="table table-bordered text-center align-middle">
-        <thead class="table-light">
-            <tr>
-                <th class="text-end">الصفحة</th>
-                <th>اضافة</th>
-                <th>حذف</th>
-                <th>تعديل</th>
-                <th>عرض</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < Model.Permissions.Count; i++)
-            {
+    <div class="table-wrap">
+        <table class="table text-center align-middle mb-0">
+            <thead>
                 <tr>
-                    <td class="text-end">
-                        @Model.Permissions[i].PageName
-                        <input type="hidden" asp-for="Permissions[i].SystemPage" />
-                        <input type="hidden" asp-for="Permissions[i].PageName" />
-                    </td>
-                    <td><input type="checkbox" class="perm-checkbox form-check-input" asp-for="Permissions[i].CanAdd" /></td>
-                    <td><input type="checkbox" class="perm-checkbox form-check-input" asp-for="Permissions[i].CanDelete" /></td>
-                    <td><input type="checkbox" class="perm-checkbox form-check-input" asp-for="Permissions[i].CanEdit" /></td>
-                    <td><input type="checkbox" class="perm-checkbox form-check-input" asp-for="Permissions[i].CanView" /></td>
+                    <th class="text-end">الصفحة</th>
+                    <th>اضافة</th>
+                    <th>حذف</th>
+                    <th>تعديل</th>
+                    <th>عرض</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.Permissions.Count; i++)
+                {
+                    <tr>
+                        <td class="text-end">
+                            @Model.Permissions[i].PageName
+                            <input type="hidden" asp-for="Permissions[i].SystemPage" />
+                            <input type="hidden" asp-for="Permissions[i].PageName" />
+                        </td>
+                        <td><input type="checkbox" class="perm-checkbox form-check-input" asp-for="Permissions[i].CanAdd" /></td>
+                        <td><input type="checkbox" class="perm-checkbox form-check-input" asp-for="Permissions[i].CanDelete" /></td>
+                        <td><input type="checkbox" class="perm-checkbox form-check-input" asp-for="Permissions[i].CanEdit" /></td>
+                        <td><input type="checkbox" class="perm-checkbox form-check-input" asp-for="Permissions[i].CanView" /></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </form>
 
 @section Scripts {

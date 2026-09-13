@@ -3,38 +3,30 @@
     ViewData["Title"] = "الاجازات الرسمية";
 }
 
-<div dir="rtl">
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-    }
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
 
-    <div class="border rounded-3 p-4 mx-auto" style="max-width: 900px;">
-
-        <h4 class="text-center fw-bold mb-4">الاجازات الرسمية</h4>
-
+<div class="card mx-auto" style="max-width: 900px;">
+    <div class="card-header text-center">الاجازات الرسمية</div>
+    <div class="card-body">
         <form asp-controller="OfficialHolidays" asp-action="Save" method="post">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Form.Id" />
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="row g-3 align-items-end mb-2">
-                <!-- الاسم - يمين -->
                 <div class="col-md-5 order-md-3">
-                    <label asp-for="Form.Name" class="form-label fw-bold"></label>
+                    <label asp-for="Form.Name" class="form-label"></label>
                     <input asp-for="Form.Name" class="form-control" placeholder="اسم الاجازة" />
                 </div>
-
-                <!-- التاريخ - النص -->
                 <div class="col-md-4 order-md-2">
-                    <label asp-for="Form.Date" class="form-label fw-bold"></label>
+                    <label asp-for="Form.Date" class="form-label"></label>
                     <input asp-for="Form.Date" type="date" class="form-control" />
                 </div>
-
-                <!-- زرار الاضافة - شمال -->
                 <div class="col-md-3 order-md-1">
-                    <button type="submit" id="submitBtn" class="btn w-100 fw-bold"
-                            style="background-color:#ff6b81; color:white;">
+                    <button type="submit" id="submitBtn" class="btn btn-brand w-100">
                         اضافة
                     </button>
                 </div>
@@ -52,41 +44,43 @@
             </div>
         </form>
 
-        <table class="table table-bordered table-hover mt-4 align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>الاسم</th>
-                    <th>التاريخ</th>
-                    <th class="text-center">العمليات</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var holiday in Model.Holidays)
-                {
+        <div class="table-wrap mt-4">
+            <table class="table align-middle mb-0">
+                <thead>
                     <tr>
-                        <td>@holiday.Name</td>
-                        <td>@holiday.Date.ToString("yyyy/MM/dd")</td>
-                        <td class="text-center">
-                            <button type="button" class="btn btn-link text-primary p-1 edit-btn"
-                                    title="تعديل"
-                                    data-id="@holiday.Id" data-name="@holiday.Name"
-                                    data-date="@holiday.Date.ToString("yyyy-MM-dd")">
-                                <i class="bi bi-pencil-fill"></i>
-                            </button>
-
-                            <form asp-controller="OfficialHolidays" asp-action="Delete" asp-route-id="@holiday.Id"
-                                  method="post" class="d-inline"
-                                  onsubmit="return confirm('هل انت متأكد من حذف هذه الاجازة؟');">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-link text-danger p-1" title="حذف">
-                                    <i class="bi bi-trash-fill"></i>
-                                </button>
-                            </form>
-                        </td>
+                        <th>الاسم</th>
+                        <th>التاريخ</th>
+                        <th class="text-center">العمليات</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var holiday in Model.Holidays)
+                    {
+                        <tr>
+                            <td>@holiday.Name</td>
+                            <td>@holiday.Date.ToString("yyyy/MM/dd")</td>
+                            <td class="text-center">
+                                <button type="button" class="btn-icon edit-btn"
+                                        title="تعديل"
+                                        data-id="@holiday.Id" data-name="@holiday.Name"
+                                        data-date="@holiday.Date.ToString("yyyy-MM-dd")">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </button>
+
+                                <form asp-controller="OfficialHolidays" asp-action="Delete" asp-route-id="@holiday.Id"
+                                      method="post" class="d-inline"
+                                      onsubmit="return confirm('هل انت متأكد من حذف هذه الاجازة؟');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn-icon danger" title="حذف">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
