@@ -15,12 +15,12 @@ namespace HRMS.Application.DTOs
         public decimal PreviousNetSalary { get; set; }
 
         public string? NotFoundError { get; set; }
-        public string? TotalOvertimeError { get; set; }
-        public string? TotalDeductionError { get; set; }
-        public string? NetSalaryError { get; set; }
+        public string? AdditionRateError { get; set; }
+        public string? DeductionRateError { get; set; }
+        public string? NetSalaryError { get; set; }   // بتتظهر لو الصافى الناتج بعد الحساب طلع صفر او سالب
 
         public bool HasErrors =>
-            NotFoundError != null || TotalOvertimeError != null ||
-            TotalDeductionError != null || NetSalaryError != null;
+            NotFoundError != null || AdditionRateError != null ||
+            DeductionRateError != null || NetSalaryError != null;
     }
 }

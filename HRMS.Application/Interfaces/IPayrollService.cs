@@ -25,6 +25,9 @@ namespace HRMS.Application.Interfaces
         Task<PayrollEditResult> EditApprovedAsync(PayrollManualEditInput input);
 
 
+        Task<(PayrollRowDto? Row, decimal HourlyRate)> GetEditContextAsync(int employeeId, int month, int year);
+
+
         // اقدم سنة يسمح باختيارها (سنة تأسيس الشركة)
         int MinimumAllowedYear { get; }
     }

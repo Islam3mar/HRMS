@@ -18,13 +18,13 @@
     }
 
     <h4 class="text-center fw-bold mb-4">تسجيل الحضور و الانصراف للموظفين</h4>
-
     <!-- أزرار Excel + اضافة -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#importModal">
                 <i class="bi bi-file-earmark-excel"></i> Excel
             </button>
+            <a asp-action="DownloadTemplate" class="btn btn-outline-secondary">تحميل قالب Excel</a>
         </div>
         <button type="button" class="btn fw-bold" style="background-color:#ff6b81; color:white;"
                 data-bs-toggle="modal" data-bs-target="#attendanceModal" onclick="openAddModal()">
@@ -238,8 +238,9 @@
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small">
-                        ترتيب الأعمدة المطلوب فى الملف: <strong>الرقم القومي</strong> | <strong>التاريخ</strong> | <strong>وقت الحضور</strong> | <strong>وقت الانصراف</strong>
-                        (الصف الأول عناوين الأعمدة).
+                        ترتيب الأعمدة المطلوب فى الملف: <strong>كود الموظف</strong> | <strong>اسم الموظف (للمراجعة فقط)</strong> | <strong>التاريخ</strong> | <strong>وقت الحضور</strong> | <strong>وقت الانصراف</strong>
+                        (الصف الأول عناوين الأعمدة). عايز تتأكد من الكود بتاع كل موظف؟
+                        <a asp-action="DownloadTemplate">حمّل القالب الجاهز</a> وهيجيلك معبّى بأكواد وأسامي كل الموظفين تلقائيًا.
                     </p>
                     <input type="file" name="excelFile" class="form-control" accept=".xlsx" required />
                 </div>

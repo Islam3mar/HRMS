@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AutoMapper;
+﻿using AutoMapper;
+using FluentValidation;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Entities;
@@ -13,11 +11,13 @@ namespace HRMS.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IValidator<GeneralSettingsInput> _validator;
 
-        public GeneralSettingsService(IUnitOfWork unitOfWork, IMapper mapper)
+        public GeneralSettingsService(IUnitOfWork unitOfWork, IMapper mapper, IValidator<GeneralSettingsInput> validator)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _validator = validator;
         }
 
         public async Task<GeneralSettings?> GetSettingsAsync()
@@ -25,19 +25,7 @@ namespace HRMS.Application.Services
 
         public async Task<GeneralSettingsResult> SaveSettingsAsync(GeneralSettingsInput input)
         {
-            var result = new GeneralSettingsResult();
-
-            // قاعدة 2: كل الحقول مطلوبة
-            if (input.AdditionRatePerHour <= 0)
-                result.AdditionRateError = "من فضلك ادخل بيانات الحقل";
-
-            if (input.DeductionRatePerHour <= 0)
-                result.DeductionRateError = "من فضلك ادخل بيانات الحقل";
-
-            // قاعدة اضافية (منطقية): مينفعش نفس يوم الاجازة يتكرر
-            if (input.WeeklyHoliday1 == input.WeeklyHoliday2)
-                result.WeeklyHoliday2Error = "لا يمكن اختيار نفس يوم الاجازة مرتين";
-
+            var result = await ValidateAsync(input);
             if (result.HasErrors) return result;
 
             var settings = await _unitOfWork.GeneralSettings.GetSingleAsync();
@@ -50,7 +38,6 @@ namespace HRMS.Application.Services
             else
             {
                 _mapper.Map(input, settings);
-
                 _unitOfWork.GeneralSettings.Update(settings);
             }
 
@@ -58,6 +45,28 @@ namespace HRMS.Application.Services
 
             result.Success = true;
             result.Settings = settings;
+            return result;
+        }
+
+        // ---------- Validation (FluentValidation) ----------
+        private async Task<GeneralSettingsResult> ValidateAsync(GeneralSettingsInput input)
+        {
+            var result = new GeneralSettingsResult();
+
+            var validation = await _validator.ValidateAsync(input);
+            if (validation.IsValid) return result;
+
+            foreach (var failure in validation.Errors)
+            {
+                switch (failure.PropertyName)
+                {
+                    case nameof(GeneralSettingsInput.AdditionRatePercentage): result.AdditionRateError = failure.ErrorMessage; break;
+                    case nameof(GeneralSettingsInput.DeductionRatePercentage): result.DeductionRateError = failure.ErrorMessage; break;
+                    case nameof(GeneralSettingsInput.WeeklyHoliday1): result.WeeklyHoliday1Error = failure.ErrorMessage; break;
+                    case nameof(GeneralSettingsInput.WeeklyHoliday2): result.WeeklyHoliday2Error = failure.ErrorMessage; break;
+                }
+            }
+
             return result;
         }
     }

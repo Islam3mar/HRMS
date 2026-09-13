@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AutoMapper;
+﻿using AutoMapper;
 using ClosedXML.Excel;
-using HRMS.Application.Common;
+using FluentValidation;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Common;
@@ -16,13 +13,13 @@ namespace HRMS.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IEncryptionService _encryptionService;
+        private readonly IValidator<AttendanceRecordInput> _validator;
 
-        public AttendanceRecordService(IUnitOfWork unitOfWork, IMapper mapper, IEncryptionService encryptionService)
+        public AttendanceRecordService(IUnitOfWork unitOfWork, IMapper mapper, IValidator<AttendanceRecordInput> validator)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _encryptionService = encryptionService;
+            _validator = validator;
         }
 
         public async Task<PagedResult<AttendanceRecord>> SearchAsync(AttendanceSearchFilter filter)
@@ -78,50 +75,39 @@ namespace HRMS.Application.Services
             return true;
         }
 
-        // ---------- Validation (قاعدة رقم 1 لـ 5 المذكورة فى صورة الـ Validation Rules) ----------
+        // ---------- Validation (FluentValidation) ----------
         private async Task<AttendanceRecordResult> ValidateAsync(AttendanceRecordInput input, int? excludeId)
         {
             var result = new AttendanceRecordResult();
 
-            // قاعدة 3: لازم يبقى فيه موظف متحدد
-            if (input.EmployeeId <= 0 || await _unitOfWork.Employees.GetByIdAsync(input.EmployeeId) == null)
+            var context = new ValidationContext<AttendanceRecordInput>(input);
+            if (excludeId.HasValue)
+                context.RootContextData["ExcludeRecordId"] = excludeId.Value;
+
+            var validation = await _validator.ValidateAsync(context);
+            if (validation.IsValid) return result;
+
+            foreach (var failure in validation.Errors)
             {
-                result.EmployeeIdError = "من فضلك ادخل اسم موظف صالح";
-                return result;
+                switch (failure.PropertyName)
+                {
+                    case nameof(AttendanceRecordInput.EmployeeId): result.EmployeeIdError = failure.ErrorMessage; break;
+                    case nameof(AttendanceRecordInput.Date): result.DateError = failure.ErrorMessage; break;
+                    case nameof(AttendanceRecordInput.CheckInTime): result.CheckInTimeError = failure.ErrorMessage; break;
+                    case nameof(AttendanceRecordInput.CheckOutTime): result.CheckOutTimeError = failure.ErrorMessage; break;
+                }
             }
-
-            if (input.Date == default)
-            {
-                result.DateError = "من فضلك ادخل تاريخ صحيح";
-                return result;
-            }
-
-            if (input.CheckInTime == default)
-                result.CheckInTimeError = "من فضلك ادخل وقت الحضور";
-
-            if (input.CheckOutTime == default)
-                result.CheckOutTimeError = "من فضلك ادخل وقت الانصراف";
-            else if (input.CheckInTime != default && input.CheckOutTime <= input.CheckInTime)
-                result.CheckOutTimeError = "وقت الانصراف يجب ان يكون بعد وقت الحضور";
-
-            if (result.HasErrors) return result;
-
-            // قاعدة 6 (رد العميل): مفيش أكتر من سجل لنفس الموظف فى نفس اليوم
-            if (await _unitOfWork.AttendanceRecords.RecordExistsAsync(input.EmployeeId, input.Date, excludeId))
-                result.DateError = "يوجد سجل حضور وانصراف مسجل بالفعل لهذا الموظف فى نفس هذا اليوم";
 
             return result;
         }
 
         // ==================== استيراد من Excel ====================
-        // الأعمدة المتوقعة بالترتيب: الرقم القومي | التاريخ | وقت الحضور | وقت الانصراف
+        // الأعمدة المتوقعة: كود الموظف | اسم الموظف (للمراجعة فقط) | التاريخ | وقت الحضور | وقت الانصراف
         public async Task<AttendanceImportResult> ImportFromExcelAsync(Stream fileStream)
         {
             var importResult = new AttendanceImportResult();
 
-            // بنجيب كل الموظفين مرة واحدة عشان نقلل عدد الاستعلامات على قاعدة البيانات
-            var employeesByNationalId = (await _unitOfWork.Employees.GetAllAsync())
-              .ToDictionary(e => e.NationalId);
+            var employeesById = (await _unitOfWork.Employees.GetAllAsync()).ToDictionary(e => e.Id);
 
             using var workbook = new XLWorkbook(fileStream);
             var sheet = workbook.Worksheets.First();
@@ -132,42 +118,29 @@ namespace HRMS.Application.Services
                 var rowNumber = row.RowNumber();
                 try
                 {
-                    var nationalId = _encryptionService.Encrypt(row.Cell(1).GetString().Trim());
-                    var dateCell = row.Cell(2);
-                    var checkInCell = row.Cell(3);
-                    var checkOutCell = row.Cell(4);
-
-                    if (string.IsNullOrWhiteSpace(nationalId))
+                    if (!row.Cell(1).TryGetValue(out int employeeId))
                     {
                         importResult.FailedCount++;
-                        importResult.Errors.Add($"صف {rowNumber}: الرقم القومي فارغ");
+                        importResult.Errors.Add($"صف {rowNumber}: كود الموظف غير صالح");
                         continue;
                     }
 
-
-                    if (!employeesByNationalId.TryGetValue(nationalId, out var employee))
+                    if (!employeesById.TryGetValue(employeeId, out var employee))
                     {
                         importResult.FailedCount++;
-                        importResult.Errors.Add($"صف {rowNumber}: لا يوجد موظف بهذا الرقم القومي ({nationalId})");
+                        importResult.Errors.Add($"صف {rowNumber}: لا يوجد موظف بكود ({employeeId})");
                         continue;
                     }
 
-                    if (employee == null)
-                    {
-                        importResult.FailedCount++;
-                        importResult.Errors.Add($"صف {rowNumber}: لا يوجد موظف بهذا الرقم القومي ({nationalId})");
-                        continue;
-                    }
-
-                    if (!dateCell.TryGetValue(out DateTime date))
+                    if (!row.Cell(3).TryGetValue(out DateTime date))
                     {
                         importResult.FailedCount++;
                         importResult.Errors.Add($"صف {rowNumber}: تاريخ غير صالح");
                         continue;
                     }
 
-                    var checkIn = ParseTime(checkInCell);
-                    var checkOut = ParseTime(checkOutCell);
+                    var checkIn = ParseTime(row.Cell(4));
+                    var checkOut = ParseTime(row.Cell(5));
 
                     if (checkIn == null || checkOut == null)
                     {
@@ -203,6 +176,40 @@ namespace HRMS.Application.Services
             }
 
             return importResult;
+        }
+
+        // ==================== قالب الاستيراد ====================
+        public async Task<byte[]> GenerateImportTemplateAsync()
+        {
+            var employees = (await _unitOfWork.Employees.GetAllAsync()).OrderBy(e => e.FullName);
+
+            using var workbook = new XLWorkbook();
+            var sheet = workbook.Worksheets.Add("قالب الاستيراد");
+            sheet.RightToLeft = true;
+
+            sheet.Cell(1, 1).Value = "كود الموظف";
+            sheet.Cell(1, 2).Value = "اسم الموظف (للمراجعة فقط - متتعدلش)";
+            sheet.Cell(1, 3).Value = "التاريخ";
+            sheet.Cell(1, 4).Value = "وقت الحضور";
+            sheet.Cell(1, 5).Value = "وقت الانصراف";
+            sheet.Row(1).Style.Font.Bold = true;
+
+            var rowIndex = 2;
+            foreach (var employee in employees)
+            {
+                sheet.Cell(rowIndex, 1).Value = employee.Id;
+                sheet.Cell(rowIndex, 2).Value = employee.FullName;
+                rowIndex++;
+            }
+
+            sheet.Column(3).Style.DateFormat.Format = "yyyy-mm-dd";
+            sheet.Column(4).Style.DateFormat.Format = "hh:mm";
+            sheet.Column(5).Style.DateFormat.Format = "hh:mm";
+            sheet.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return stream.ToArray();
         }
 
         private static TimeSpan? ParseTime(IXLCell cell)

@@ -11,8 +11,8 @@ namespace HRMS.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<GeneralSettings> builder)
         {
-            builder.Property(s => s.AdditionRatePerHour).HasColumnType("decimal(18,2)");
-            builder.Property(s => s.DeductionRatePerHour).HasColumnType("decimal(18,2)");
+            builder.Property(s => s.AdditionRatePercentage).HasColumnType("decimal(18,2)");
+            builder.Property(s => s.DeductionRatePercentage).HasColumnType("decimal(18,2)");
             builder.Property(s => s.WeeklyHoliday1).HasConversion<string>().HasMaxLength(20);
             builder.Property(s => s.WeeklyHoliday2).HasConversion<string>().HasMaxLength(20);
         }

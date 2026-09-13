@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using HRMS.Domain.Common;
 using HRMS.Domain.Entities;
 using HRMS.Domain.Interfaces;
 using HRMS.Domain.Interfaces;
@@ -47,6 +48,15 @@ namespace HRMS.Infrastructure.Repositories
             return await Query
                 .AnyAsync(e => e.NationalId == nationalId &&
                                (excludeEmployeeId == null || e.Id != excludeEmployeeId));
+        }
+
+        public async Task<EmployeeSchedule?> GetScheduleAsync(int employeeId)
+        {
+            return await Query
+                .AsNoTracking()
+                .Where(e => e.Id == employeeId)
+                .Select(e => new EmployeeSchedule(e.AttendanceTime, e.DepartureTime, e.Salary, e.ContractDate))
+                .FirstOrDefaultAsync();
         }
     }
 }

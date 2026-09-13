@@ -17,17 +17,23 @@
 
                 <div class="row mb-3">
                     <div class="col-md-6 offset-md-6">
-                        <label asp-for="AdditionRatePerHour" class="form-label"></label>
-                        <input asp-for="AdditionRatePerHour" class="form-control settings-field" placeholder="2 ساعة" readonly="@Model.IsExisting" />
-                        <span asp-validation-for="AdditionRatePerHour" class="text-danger"></span>
+                        <label asp-for="AdditionRatePercentage" class="form-label"></label>
+                        <div class="input-group">
+                            <input asp-for="AdditionRatePercentage" class="form-control settings-field" placeholder="مثال: 10" readonly="@Model.IsExisting" />
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <span asp-validation-for="AdditionRatePercentage" class="text-danger"></span>
                     </div>
                 </div>
 
                 <div class="row mb-4">
                     <div class="col-md-6 offset-md-6">
-                        <label asp-for="DeductionRatePerHour" class="form-label"></label>
-                        <input asp-for="DeductionRatePerHour" class="form-control settings-field" placeholder="2 ساعة" readonly="@Model.IsExisting" />
-                        <span asp-validation-for="DeductionRatePerHour" class="text-danger"></span>
+                        <label asp-for="DeductionRatePercentage" class="form-label"></label>
+                        <div class="input-group">
+                            <input asp-for="DeductionRatePercentage" class="form-control settings-field" placeholder="مثال: 10" readonly="@Model.IsExisting" />
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <span asp-validation-for="DeductionRatePercentage" class="text-danger"></span>
                     </div>
                 </div>
 

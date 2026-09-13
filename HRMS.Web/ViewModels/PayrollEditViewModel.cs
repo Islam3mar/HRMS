@@ -16,21 +16,18 @@ namespace HRMS.Web.ViewModels
         public int AbsenceDaysCount { get; set; }
         public decimal OvertimeHours { get; set; }
         public decimal DeductionHours { get; set; }
+        public decimal HourlyRate { get; set; }        // سعر الساعة العادى المحسوب - للعرض والمعاينة (Preview) بس
+        public decimal CurrentNetSalary { get; set; }   // الصافى الحالى قبل التعديل - للعرض بس
 
-        // الحقول القابلة للتعديل اليدوي
-        [Display(Name = "اجمالى الاضافى")]
+        // الحقول القابلة للتعديل اليدوي - بقوا نسبة % بدل مبلغ ثابت (زي الاعدادات العامة بالظبط)
+        [Display(Name = "نسبة الاضافة (%)")]
         [Required(ErrorMessage = "من فضلك ادخل بيانات الحقل")]
-        [Range(0, double.MaxValue, ErrorMessage = "من فضلك ادخل قيمة صحيحة اكبر من او تساوى صفر")]
-        public decimal TotalOvertimeAmount { get; set; }
+        [Range(typeof(decimal), "0", "500", ErrorMessage = "من فضلك ادخل نسبة صحيحة اكبر من او تساوى صفر")]
+        public decimal AdditionRatePercentage { get; set; }
 
-        [Display(Name = "اجمالى الخصم")]
+        [Display(Name = "نسبة الخصم (%)")]
         [Required(ErrorMessage = "من فضلك ادخل بيانات الحقل")]
-        [Range(0, double.MaxValue, ErrorMessage = "من فضلك ادخل قيمة صحيحة اكبر من او تساوى صفر")]
-        public decimal TotalDeductionAmount { get; set; }
-
-        [Display(Name = "الصافى")]
-        [Required(ErrorMessage = "من فضلك ادخل بيانات الحقل")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "الصافى لا يمكن ان يكون صفر او اقل")]
-        public decimal NetSalary { get; set; }
+        [Range(typeof(decimal), "0", "300", ErrorMessage = "من فضلك ادخل نسبة صحيحة اكبر من او تساوى صفر")]
+        public decimal DeductionRatePercentage { get; set; }
     }
 }

@@ -28,6 +28,8 @@ namespace HRMS.Application.DTOs
         public int Month { get; set; }
         public int Year { get; set; }
 
+        public decimal HourlyRate { get; set; }
+
         // هل الراتب ده اتحفظ كسجل ثابت (Snapshot) بالفعل، ولا لسه محسوب لحظيًا؟
         public bool IsApproved { get; set; }
         public DateTime? ApprovedAt { get; set; }

@@ -6,8 +6,8 @@ namespace HRMS.Application.DTOs
 {
     public class GeneralSettingsInput
     {
-        public decimal AdditionRatePerHour { get; set; }
-        public decimal DeductionRatePerHour { get; set; }
+        public decimal AdditionRatePercentage { get; set; }
+        public decimal DeductionRatePercentage { get; set; }
         public DayOfWeek WeeklyHoliday1 { get; set; }
         public DayOfWeek WeeklyHoliday2 { get; set; }
     }

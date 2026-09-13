@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AutoMapper;
+﻿using AutoMapper;
+using FluentValidation;
 using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Entities;
@@ -13,11 +11,13 @@ namespace HRMS.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IValidator<OfficialHolidayInput> _validator;
 
-        public OfficialHolidayService(IUnitOfWork unitOfWork, IMapper mapper)
+        public OfficialHolidayService(IUnitOfWork unitOfWork, IMapper mapper, IValidator<OfficialHolidayInput> validator)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _validator = validator;
         }
 
         public async Task<IEnumerable<OfficialHoliday>> GetAllAsync()
@@ -28,14 +28,8 @@ namespace HRMS.Application.Services
 
         public async Task<OfficialHolidayResult> CreateAsync(OfficialHolidayInput input)
         {
-            var result = Validate(input);
+            var result = await ValidateAsync(input, excludeHolidayId: null);
             if (result.HasErrors) return result;
-
-            if (await _unitOfWork.OfficialHolidays.DateExistsAsync(input.Date))
-            {
-                result.DateError = "يوجد اجازة رسمية مسجلة بنفس هذا التاريخ من قبل";
-                return result;
-            }
 
             var holiday = _mapper.Map<OfficialHoliday>(input);
             await _unitOfWork.OfficialHolidays.AddAsync(holiday);
@@ -52,14 +46,8 @@ namespace HRMS.Application.Services
             if (holiday == null)
                 return new OfficialHolidayResult { NameError = "الاجازة غير موجودة" };
 
-            var result = Validate(input);
+            var result = await ValidateAsync(input, excludeHolidayId: id);
             if (result.HasErrors) return result;
-
-            if (await _unitOfWork.OfficialHolidays.DateExistsAsync(input.Date, id))
-            {
-                result.DateError = "يوجد اجازة رسمية مسجلة بنفس هذا التاريخ من قبل";
-                return result;
-            }
 
             _mapper.Map(input, holiday);
             _unitOfWork.OfficialHolidays.Update(holiday);
@@ -80,15 +68,28 @@ namespace HRMS.Application.Services
             return true;
         }
 
-        private static OfficialHolidayResult Validate(OfficialHolidayInput input)
+        // ---------- Validation (FluentValidation) ----------
+        // ملحوظة: فحص تكرار التاريخ (DateExistsAsync) بقى جوه الـ Validator نفسه
+        // (OfficialHolidayInputValidator.ValidateUniqueDateAsync) فمش محتاجين نكرره هنا تانى.
+        private async Task<OfficialHolidayResult> ValidateAsync(OfficialHolidayInput input, int? excludeHolidayId)
         {
             var result = new OfficialHolidayResult();
 
-            if (string.IsNullOrWhiteSpace(input.Name))
-                result.NameError = "من فضلك ادخل اسم الاجازة";
+            var context = new ValidationContext<OfficialHolidayInput>(input);
+            if (excludeHolidayId.HasValue)
+                context.RootContextData["ExcludeHolidayId"] = excludeHolidayId.Value;
 
-            if (input.Date == default)
-                result.DateError = "من فضلك ادخل تاريخ الاجازة";
+            var validation = await _validator.ValidateAsync(context);
+            if (validation.IsValid) return result;
+
+            foreach (var failure in validation.Errors)
+            {
+                switch (failure.PropertyName)
+                {
+                    case nameof(OfficialHolidayInput.Name): result.NameError = failure.ErrorMessage; break;
+                    case nameof(OfficialHolidayInput.Date): result.DateError = failure.ErrorMessage; break;
+                }
+            }
 
             return result;
         }

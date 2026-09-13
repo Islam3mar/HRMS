@@ -28,8 +28,8 @@ namespace HRMS.Web.Controllers
                 ? new GeneralSettingsFormViewModel { DayOptions = GetDayOptions(), IsExisting = false }
                 : new GeneralSettingsFormViewModel
                 {
-                    AdditionRatePerHour = settings.AdditionRatePerHour,
-                    DeductionRatePerHour = settings.DeductionRatePerHour,
+                    AdditionRatePercentage = settings.AdditionRatePercentage,
+                    DeductionRatePercentage = settings.DeductionRatePercentage,
                     WeeklyHoliday1 = settings.WeeklyHoliday1,
                     WeeklyHoliday2 = settings.WeeklyHoliday2,
                     DayOptions = GetDayOptions(),
@@ -55,8 +55,8 @@ namespace HRMS.Web.Controllers
 
             var input = new GeneralSettingsInput
             {
-                AdditionRatePerHour = model.AdditionRatePerHour,
-                DeductionRatePerHour = model.DeductionRatePerHour,
+                AdditionRatePercentage = model.AdditionRatePercentage,
+                DeductionRatePercentage = model.DeductionRatePercentage,
                 WeeklyHoliday1 = model.WeeklyHoliday1,
                 WeeklyHoliday2 = model.WeeklyHoliday2
             };
@@ -65,8 +65,8 @@ namespace HRMS.Web.Controllers
 
             if (!result.Success)
             {
-                if (result.AdditionRateError != null) ModelState.AddModelError(nameof(model.AdditionRatePerHour), result.AdditionRateError);
-                if (result.DeductionRateError != null) ModelState.AddModelError(nameof(model.DeductionRatePerHour), result.DeductionRateError);
+                if (result.AdditionRateError != null) ModelState.AddModelError(nameof(model.AdditionRatePercentage), result.AdditionRateError);
+                if (result.DeductionRateError != null) ModelState.AddModelError(nameof(model.DeductionRatePercentage), result.DeductionRateError);
                 if (result.WeeklyHoliday1Error != null) ModelState.AddModelError(nameof(model.WeeklyHoliday1), result.WeeklyHoliday1Error);
                 if (result.WeeklyHoliday2Error != null) ModelState.AddModelError(nameof(model.WeeklyHoliday2), result.WeeklyHoliday2Error);
 
