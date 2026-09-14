@@ -18,6 +18,8 @@ namespace HRMS.Application.Validators
 
         public EmployeeInputValidator(IUnitOfWork unitOfWork, IEncryptionService encryptionService)
         {
+            // Stop executing further rules for a property once one rule for that property fails
+            RuleLevelCascadeMode = CascadeMode.Stop;
             _unitOfWork = unitOfWork;
             _encryptionService = encryptionService;
 

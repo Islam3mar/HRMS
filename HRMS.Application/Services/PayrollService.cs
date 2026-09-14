@@ -199,7 +199,8 @@ namespace HRMS.Application.Services
 
             var hourlyRate = record.HourlyRate;
 
-            var overtimeHourRate = hourlyRate * (1 + input.AdditionRatePercentage / 100m);
+            // AdditionRatePercentage is treated as the full percent value (e.g., 135 means 135% of hourly rate)
+            var overtimeHourRate = hourlyRate * (input.AdditionRatePercentage / 100m);
             var deductionHourRate = hourlyRate * (input.DeductionRatePercentage / 100m);
 
             var newTotalOvertimeAmount = Math.Round(record.OvertimeHours * overtimeHourRate, 2);
@@ -356,8 +357,9 @@ namespace HRMS.Application.Services
             var standardMonthlyHours = standardWorkingDaysInMonth * dailyWorkHours;
             var hourlyRate = standardMonthlyHours > 0 ? employee.Salary / standardMonthlyHours : 0m;
 
-            var overtimeHourRate = hourlyRate * (1 + additionPercentage / 100m);   // بونص فوق السعر العادى
-            var deductionHourRate = hourlyRate * (deductionPercentage / 100m);     // نسبة من السعر العادى
+            // AdditionRatePercentage is stored as the full percent (e.g., 135 => 135% of base hourly)
+            var overtimeHourRate = hourlyRate * (additionPercentage / 100m);
+            var deductionHourRate = hourlyRate * (deductionPercentage / 100m);
 
             var totalOvertimeAmount = Math.Round(overtimeHours * overtimeHourRate, 2);
             var totalDeductionAmount = Math.Round(deductionHours * deductionHourRate, 2);

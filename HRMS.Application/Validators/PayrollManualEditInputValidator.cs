@@ -7,6 +7,8 @@ namespace HRMS.Application.Validators
     {
         public PayrollManualEditInputValidator()
         {
+            // Stop executing further rules for a property once one rule for that property fails
+            RuleLevelCascadeMode = CascadeMode.Stop;
             RuleFor(x => x.AdditionRatePercentage)
                 .GreaterThanOrEqualTo(0).WithMessage("من فضلك ادخل نسبة اضافة صحيحة اكبر من او تساوى صفر");
 
