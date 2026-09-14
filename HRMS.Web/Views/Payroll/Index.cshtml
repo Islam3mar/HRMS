@@ -9,6 +9,10 @@
 {
     <div class="alert alert-success">@TempData["SuccessMessage"]</div>
 }
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
 
 @if (Model.SearchError != null)
 {
@@ -19,8 +23,14 @@
     <div class="alert alert-warning">@Model.YearError</div>
 }
 
-<form asp-controller="Payroll" asp-action="Index" method="get" class="row g-2 align-items-end mb-3">
-    <div class="col-md-6">
+<form id="searchForm" asp-controller="Payroll" asp-action="Index" method="get" class="row g-2 align-items-end mb-3">
+    <div class="col-md-1 d-flex align-items-end">
+        <div>
+            <label class="form-label">اليوم</label>
+            <div id="currentDayDisplay" class="form-control-plaintext" style="padding-top: .375rem;">@DateTime.Today.ToString("dddd, yyyy/MM/dd", new System.Globalization.CultureInfo("ar-EG"))</div>
+        </div>
+    </div>
+    <div class="col-md-5">
         <label class="form-label">بحث باسم الموظف</label>
         <input asp-for="Search.EmployeeName" class="form-control" placeholder="بحث باسم الموظف" />
     </div>
@@ -30,7 +40,10 @@
     </div>
     <div class="col-md-2">
         <label class="form-label">سنة</label>
-        <select asp-for="Search.Year" asp-items="Model.YearOptions" class="form-select"></select>
+        <div class="d-flex">
+            <select asp-for="Search.Year" asp-items="Model.YearOptions" class="form-select"></select>
+            <button type="button" class="btn btn-sm btn-outline-primary ms-2" onclick="setToToday()" title="اختر الشهر والسنة الحالية">اليوم</button>
+        </div>
     </div>
     <div class="col-md-2">
         <button type="submit" class="btn btn-outline-secondary w-100">
@@ -38,6 +51,49 @@
         </button>
     </div>
 </form>
+
+<script>
+    function setToToday() {
+        try {
+            const now = new Date();
+            const month = now.getMonth() + 1; // JS months 0-11
+            const year = now.getFullYear();
+            const monthEl = document.getElementById('Search_Month');
+            const yearEl = document.getElementById('Search_Year');
+            if (monthEl) monthEl.value = month;
+            if (yearEl) yearEl.value = year;
+            const form = document.getElementById('searchForm');
+            if (form) form.submit();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // Update the current day display and schedule next update at midnight so it "changes by itself" when the day ends
+    (function initCurrentDayUpdater(){
+        const el = document.getElementById('currentDayDisplay');
+        if (!el) return;
+
+        function formatToday(locale){
+            try {
+                const now = new Date();
+                const formatter = new Intl.DateTimeFormat('ar-EG', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' });
+                return formatter.format(now);
+            } catch { return new Date().toLocaleDateString(); }
+        }
+
+        function update(){
+            el.textContent = formatToday('ar-EG');
+            // compute ms until next midnight
+            const now = new Date();
+            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+            const ms = tomorrow.getTime() - now.getTime() + 1000; // small buffer
+            setTimeout(update, ms);
+        }
+
+        update();
+    })();
+</script>
 
 <div class="table-wrap">
     <table class="table align-middle mb-0">

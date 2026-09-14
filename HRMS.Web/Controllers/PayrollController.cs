@@ -65,23 +65,36 @@ namespace HRMS.Web.Controllers
         [PermissionAuthorize(SystemPage.PayrollReport, PermissionAction.View)]
         public async Task<IActionResult> Print(int employeeId, int month, int year)
         {
-            var row = await _payrollService.ApproveAsync(employeeId, month, year);
-            if (row == null)
-                return NotFound();
+            try
+            {
+                var row = await _payrollService.ApproveAsync(employeeId, month, year);
+                if (row == null) return NotFound();
 
-            ViewBag.MonthName = ArabicMonthNames[month - 1];
-            return View(row);
+                ViewBag.MonthName = ArabicMonthNames[month - 1];
+                return View(row);
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index), new { Month = month, Year = year });
+            }
         }
 
-        // اعتماد الراتب من غير طباعة (زرار منفصل فى الجدول)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Approve(int employeeId, int month, int year, string? employeeName)
         {
-            var row = await _payrollService.ApproveAsync(employeeId, month, year);
-            TempData["SuccessMessage"] = row != null
-                ? $"تم اعتماد راتب {row.EmployeeName} بنجاح"
-                : "الموظف غير موجود";
+            try
+            {
+                var row = await _payrollService.ApproveAsync(employeeId, month, year);
+                TempData["SuccessMessage"] = row != null
+                    ? $"تم اعتماد راتب {row.EmployeeName} بنجاح"
+                    : "الموظف غير موجود";
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
 
             return RedirectToAction(nameof(Index), new { Month = month, Year = year, EmployeeName = employeeName });
         }
@@ -89,10 +102,18 @@ namespace HRMS.Web.Controllers
         [PermissionAuthorize(SystemPage.PayrollReport, PermissionAction.Edit)]
         public async Task<IActionResult> Edit(int employeeId, int month, int year)
         {
-            var model = await BuildEditViewModelAsync(employeeId, month, year);
-            if (model == null) return NotFound();
+            try
+            {
+                var model = await BuildEditViewModelAsync(employeeId, month, year);
+                if (model == null) return NotFound();
 
-            return View(model);
+                return View(model);
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index), new { Month = month, Year = year });
+            }
         }
 
         [HttpPost]

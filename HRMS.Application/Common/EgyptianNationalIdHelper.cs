@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using HRMS.Domain.Enums;
 
 namespace HRMS.Application.Common
 {
@@ -11,12 +12,6 @@ namespace HRMS.Application.Common
         {
             birthDate = default;
             error = null;
-
-            if (string.IsNullOrWhiteSpace(nationalId) || nationalId.Length != 14 || !nationalId.All(char.IsDigit))
-            {
-                error = "الرقم القومي يجب ان يتكون من 14 رقم";
-                return false;
-            }
 
             var century = nationalId[0] switch
             {
@@ -56,6 +51,23 @@ namespace HRMS.Application.Common
             }
 
             birthDate = decoded;
+            return true;
+        }
+
+        // كود المحافظة (الخانتين 8 و9) - بيفترض ان الرقم اتأكد قبل كده انه 14 رقم بالكامل
+        public static bool TryDecodeGovernorate(string nationalId, out EgyptianGovernorate governorate, out string? error)
+        {
+            governorate = default;
+            error = null;
+
+            var code = int.Parse(nationalId.Substring(7, 2));
+            if (!Enum.IsDefined(typeof(EgyptianGovernorate), code))
+            {
+                error = "الرقم القومي غير صحيح (كود المحافظة غير معروف)";
+                return false;
+            }
+
+            governorate = (EgyptianGovernorate)code;
             return true;
         }
     }
