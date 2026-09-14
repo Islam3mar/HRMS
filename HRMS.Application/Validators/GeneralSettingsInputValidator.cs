@@ -10,6 +10,8 @@ namespace HRMS.Application.Validators
     {
         public GeneralSettingsInputValidator()
         {
+            // Stop executing further rules for a property once one rule for that property fails
+            RuleLevelCascadeMode = CascadeMode.Stop;
             RuleFor(x => x.AdditionRatePercentage).GreaterThan(0).WithMessage("من فضلك ادخل بيانات الحقل");
             RuleFor(x => x.DeductionRatePercentage).GreaterThan(0).WithMessage("من فضلك ادخل بيانات الحقل");
 

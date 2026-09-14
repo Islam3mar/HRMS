@@ -13,6 +13,8 @@ namespace HRMS.Application.Validators
 
         public AttendanceRecordInputValidator(IUnitOfWork unitOfWork)
         {
+            // Stop executing further rules for a property once one rule for that property fails
+             RuleLevelCascadeMode = CascadeMode.Stop;
             _unitOfWork = unitOfWork;
 
             RuleFor(x => x.EmployeeId)
