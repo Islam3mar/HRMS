@@ -28,6 +28,8 @@ namespace HRMS.Domain.Entities
         public decimal TotalOvertimeAmount { get; set; }
         public decimal TotalDeductionAmount { get; set; }
 
+        public decimal AbsenceDeductionAmount { get; set; }   // قيمة خصم أيام الغياب وقت الاعتماد - Snapshot زي الباقي
+
         public decimal NetSalary { get; set; }
 
         public decimal HourlyRate { get; set; }   // سعر الساعة العادى وقت الاعتماد - مجمّد زي باقي القيم

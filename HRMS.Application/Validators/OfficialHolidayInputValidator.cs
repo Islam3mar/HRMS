@@ -13,7 +13,6 @@ namespace HRMS.Application.Validators
 
         public OfficialHolidayInputValidator(IUnitOfWork unitOfWork)
         {
-            // Stop executing further rules for a property once one rule for that property fails
             RuleLevelCascadeMode = CascadeMode.Stop;
             _unitOfWork = unitOfWork;
 
@@ -21,7 +20,7 @@ namespace HRMS.Application.Validators
 
             RuleFor(x => x.Date)
                 .NotEqual(default(DateTime)).WithMessage("من فضلك ادخل تاريخ الاجازة")
-                .CustomAsync(ValidateUniqueDateAsync).When(x => x.Date != default);
+                .CustomAsync(ValidateUniqueDateAsync);
         }
 
         private async Task ValidateUniqueDateAsync(DateTime date, ValidationContext<OfficialHolidayInput> context, CancellationToken ct)

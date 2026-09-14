@@ -23,6 +23,8 @@ namespace HRMS.Application.DTOs
         public decimal TotalOvertimeAmount { get; set; } // اجمالى الاضافى
         public decimal TotalDeductionAmount { get; set; } // اجمالى الخصم
 
+        public decimal AbsenceDeductionAmount { get; set; }   // قيمة خصم أيام الغياب (منفصلة عن خصم ساعات التأخير)
+
         public decimal NetSalary { get; set; }          // الصافى
 
         public int Month { get; set; }

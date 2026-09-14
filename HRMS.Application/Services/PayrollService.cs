@@ -131,9 +131,17 @@ namespace HRMS.Application.Services
 
         public async Task<PayrollRowDto?> ApproveAsync(int employeeId, int month, int year)
         {
-            // لو اتعمله اعتماد قبل كده، رجّع نفس السجل المحفوظ ومتعملش سجل جديد فوقه
             var existing = await _unitOfWork.PayrollRecords.GetByEmployeeAndMonthAsync(employeeId, month, year);
             if (existing != null) return MapFromRecord(existing);
+
+            // لا يمكن اعتماد راتب لشهر مستقبلي
+            var today = DateTime.Today;
+            if (year > today.Year || (year == today.Year && month > today.Month))
+                throw new InvalidOperationException("لا يمكن اعتماد راتب لشهر مستقبلي");
+
+            // الشهر الحالي لا يمكن اعتماده أو طباعته لأن البيانات قد لا تكون نهائية
+            if (year == today.Year && month == today.Month)
+                throw new InvalidOperationException("لا يمكن اعتماد او طباعة راتب هذا الشهر لانه لم ينته بعد، من فضلك انتظر حتى نهاية الشهر");
 
             var live = await GetEmployeePayrollAsync(employeeId, month, year);
             if (live == null) return null;
@@ -150,6 +158,7 @@ namespace HRMS.Application.Services
                 DeductionHours = live.DeductionHours,
                 TotalOvertimeAmount = live.TotalOvertimeAmount,
                 TotalDeductionAmount = live.TotalDeductionAmount,
+                AbsenceDeductionAmount = live.AbsenceDeductionAmount,
                 NetSalary = live.NetSalary,
                 HourlyRate = live.HourlyRate,
                 ApprovedAt = DateTime.Now
@@ -158,7 +167,6 @@ namespace HRMS.Application.Services
             await _unitOfWork.PayrollRecords.AddAsync(record);
             await _unitOfWork.SaveChangesAsync();
 
-            // بعد الحفظ، رجّع القيم بعد اضافة بيانات الموظف (اسم/قسم) للعرض
             var employee = await _unitOfWork.Employees.GetByIdAsync(employeeId);
             live.IsApproved = true;
             live.ApprovedAt = record.ApprovedAt;
@@ -170,7 +178,6 @@ namespace HRMS.Application.Services
 
             return live;
         }
-
         public async Task<PayrollRowDto?> GetForEditAsync(int employeeId, int month, int year)
         {
             // نتأكد إن الراتب معتمد ومحفوظ الأول (لو مش معتمد، بيتعمله اعتماد لحظياً)
@@ -190,22 +197,20 @@ namespace HRMS.Application.Services
                 return result;
             }
 
-            // سجلات اتعمدت قبل ما نضيف HourlyRate هتكون قيمتها صفر - نحسبها دلوقتي مرة واحدة على أساس
-            // ايام الشهر القياسية بالكامل (مش عدد الأيام اللي كانت عدت وقت الاعتماد القديم) ونثبتها فى السجل
             if (record.HourlyRate <= 0)
             {
-                record.HourlyRate = await RecalculateStandardHourlyRateAsync(input.EmployeeId, input.Month, input.Year);
+                record.HourlyRate = await RecalculateStandardHourlyRateAsync(input.EmployeeId);
             }
 
             var hourlyRate = record.HourlyRate;
 
-            // AdditionRatePercentage is treated as the full percent value (e.g., 135 means 135% of hourly rate)
+            // Treat AdditionRatePercentage as the full percent value (e.g., 135 means 135% of hourly rate)
             var overtimeHourRate = hourlyRate * (input.AdditionRatePercentage / 100m);
             var deductionHourRate = hourlyRate * (input.DeductionRatePercentage / 100m);
 
             var newTotalOvertimeAmount = Math.Round(record.OvertimeHours * overtimeHourRate, 2);
             var newTotalDeductionAmount = Math.Round(record.DeductionHours * deductionHourRate, 2);
-            var newNetSalary = record.BaseSalary + newTotalOvertimeAmount - newTotalDeductionAmount;
+            var newNetSalary = record.BaseSalary - record.AbsenceDeductionAmount + newTotalOvertimeAmount - newTotalDeductionAmount;
 
             if (newNetSalary <= 0)
             {
@@ -240,7 +245,7 @@ namespace HRMS.Application.Services
                 var record = await _unitOfWork.PayrollRecords.GetByEmployeeAndMonthAsync(employeeId, month, year);
                 if (record != null)
                 {
-                    record.HourlyRate = await RecalculateStandardHourlyRateAsync(employeeId, month, year);
+                    record.HourlyRate = await RecalculateStandardHourlyRateAsync(employeeId);
                     _unitOfWork.PayrollRecords.Update(record);
                     await _unitOfWork.SaveChangesAsync();
                     row.HourlyRate = record.HourlyRate;
@@ -290,6 +295,7 @@ namespace HRMS.Application.Services
             DeductionHours = record.DeductionHours,
             TotalOvertimeAmount = record.TotalOvertimeAmount,
             TotalDeductionAmount = record.TotalDeductionAmount,
+            AbsenceDeductionAmount = record.AbsenceDeductionAmount,
             NetSalary = record.NetSalary,
             Month = record.Month,
             Year = record.Year,
@@ -299,22 +305,21 @@ namespace HRMS.Application.Services
         };
 
         private static PayrollRowDto BuildRow(
-      Employee employee,
-      List<AttendanceRecord> employeeRecords,
-      GeneralSettings? settings,
-      HashSet<DateTime> holidays,
-      DateTime monthStart,
-      DateTime monthEnd,
-      int month,
-      int year)
+       Employee employee,
+       List<AttendanceRecord> employeeRecords,
+       GeneralSettings? settings,
+       HashSet<DateTime> holidays,
+       DateTime monthStart,
+       DateTime monthEnd,
+       int month,
+       int year)
         {
             var additionPercentage = settings?.AdditionRatePercentage ?? 0m;
             var deductionPercentage = settings?.DeductionRatePercentage ?? 0m;
             var weeklyHoliday1 = settings?.WeeklyHoliday1;
             var weeklyHoliday2 = settings?.WeeklyHoliday2;
 
-            // احسب عدد ايام الشغل الفعلية اللي "عدت" فى الشهر (من غير الاجازات الاسبوعية والرسمية)
-            // لو الشهر الحالى لسه ماخلصش، نوقف عند النهاردة (مينفعش نحسب غياب فى ايام لسه ما جاتش)
+            // احسب عدد ايام الشغل الفعلية اللى "عدت" فى الشهر (من غير الاجازات) - لحساب الغياب بس
             var effectiveEnd = monthEnd;
             var today = DateTime.Today;
             if (year == today.Year && month == today.Month)
@@ -322,18 +327,8 @@ namespace HRMS.Application.Services
             else if (monthStart > today)
                 effectiveEnd = monthStart.AddDays(-1); // شهر فى المستقبل بالكامل: صفر ايام شغل
 
-            // العد يبدأ من اتنين اقصاهم - أول الشهر او تاريخ التعاقد ايهما بعد
             var effectiveStart = monthStart > employee.ContractDate.Date ? monthStart : employee.ContractDate.Date;
-
-            // أيام الشغل اللي فعلاً عدت لحد دلوقتي - لحساب الحضور/الغياب بس
             var elapsedWorkingDays = CountWorkingDays(effectiveStart, effectiveEnd, weeklyHoliday1, weeklyHoliday2, holidays);
-
-            // أيام الشغل القياسية للشهر بالكامل - لحساب سعر الساعة بس، ثابتة ومتتأثرش بتاريخ الاعتماد
-            // (لو الموظف اتعاقد فى نص الشهر، بنحسب من تاريخ التعاقد بس لنهاية الشهر عشان سعر الساعة يفضل منطقي لشهر التعيين)
-            var standardRangeStart = monthStart > employee.ContractDate.Date ? monthStart : employee.ContractDate.Date;
-            var standardWorkingDaysInMonth = standardRangeStart <= monthEnd
-                ? CountWorkingDays(standardRangeStart, monthEnd, weeklyHoliday1, weeklyHoliday2, holidays)
-                : 0;
 
             var attendanceDays = employeeRecords.Select(r => r.Date.Date).Distinct().Count();
             var absenceDays = Math.Max(0, elapsedWorkingDays - attendanceDays);
@@ -350,20 +345,27 @@ namespace HRMS.Application.Services
                     overtimeHours += (decimal)(record.CheckOutTime - employee.DepartureTime).TotalHours;
             }
 
-            // سعر الساعة العادى للموظف = الراتب ÷ ساعات الشغل القياسية للشهر بالكامل (مش الأيام اللي عدت بس)
+            // الراتب بيتحسب على 30 يوم ثابتين كل شهر (مش على ايام الشغل الفعلية فقط)
+            // لان ايام الاجازات الاسبوعية والرسمية مدفوعة الاجر برضو ومبتتخصمش من الموظف
+            const decimal DaysInMonthForPayroll = 30m;
+            var dailyRate = employee.Salary / DaysInMonthForPayroll;
+
             var dailyWorkHours = (decimal)(employee.DepartureTime - employee.AttendanceTime).TotalHours;
             if (dailyWorkHours <= 0) dailyWorkHours = 8; // احتياطى لو موظف بيانات مواعيده غلط
 
-            var standardMonthlyHours = standardWorkingDaysInMonth * dailyWorkHours;
-            var hourlyRate = standardMonthlyHours > 0 ? employee.Salary / standardMonthlyHours : 0m;
+            var hourlyRate = dailyRate / dailyWorkHours;
 
-            // AdditionRatePercentage is stored as the full percent (e.g., 135 => 135% of base hourly)
+            // Treat AdditionRatePercentage as the full percent value (e.g., 135 means 135% of hourly rate)
             var overtimeHourRate = hourlyRate * (additionPercentage / 100m);
             var deductionHourRate = hourlyRate * (deductionPercentage / 100m);
 
             var totalOvertimeAmount = Math.Round(overtimeHours * overtimeHourRate, 2);
             var totalDeductionAmount = Math.Round(deductionHours * deductionHourRate, 2);
-            var netSalary = employee.Salary + totalOvertimeAmount - totalDeductionAmount;
+
+            // خصم ايام الغياب الفعلية (يوم غياب = يوم شغل مفروض يحضره ومحضرش، غير الاجازات) بسعر اليوم الثابت
+            var absenceDeductionAmount = Math.Round(absenceDays * dailyRate, 2);
+
+            var netSalary = employee.Salary - absenceDeductionAmount + totalOvertimeAmount - totalDeductionAmount;
 
             return new PayrollRowDto
             {
@@ -378,6 +380,7 @@ namespace HRMS.Application.Services
                 HourlyRate = Math.Round(hourlyRate, 2),
                 TotalOvertimeAmount = totalOvertimeAmount,
                 TotalDeductionAmount = totalDeductionAmount,
+                AbsenceDeductionAmount = absenceDeductionAmount,
                 NetSalary = netSalary,
                 Month = month,
                 Year = year,
@@ -400,28 +403,18 @@ namespace HRMS.Application.Services
             }
             return count;
         }
-        private async Task<decimal> RecalculateStandardHourlyRateAsync(int employeeId, int month, int year)
+        private async Task<decimal> RecalculateStandardHourlyRateAsync(int employeeId)
         {
             var schedule = await _unitOfWork.Employees.GetScheduleAsync(employeeId);
             if (schedule == null) return 0m;
 
-            var settings = await _unitOfWork.GeneralSettings.GetSingleAsync();
-            var holidays = (await _unitOfWork.OfficialHolidays.GetAllOrderedByDateAsync())
-                .Select(h => h.Date.Date)
-                .ToHashSet();
-
-            var (monthStart, monthEnd) = GetMonthRange(month, year);
-            var standardRangeStart = monthStart > schedule.ContractDate.Date ? monthStart : schedule.ContractDate.Date;
-
-            var standardWorkingDaysInMonth = standardRangeStart <= monthEnd
-                ? CountWorkingDays(standardRangeStart, monthEnd, settings?.WeeklyHoliday1, settings?.WeeklyHoliday2, holidays)
-                : 0;
+            const decimal DaysInMonthForPayroll = 30m;
+            var dailyRate = schedule.Salary / DaysInMonthForPayroll;
 
             var dailyWorkHours = (decimal)(schedule.DepartureTime - schedule.AttendanceTime).TotalHours;
             if (dailyWorkHours <= 0) dailyWorkHours = 8;
 
-            var standardMonthlyHours = standardWorkingDaysInMonth * dailyWorkHours;
-            return standardMonthlyHours > 0 ? Math.Round(schedule.Salary / standardMonthlyHours, 2) : 0m;
+            return Math.Round(dailyRate / dailyWorkHours, 2);
         }
     }
 }

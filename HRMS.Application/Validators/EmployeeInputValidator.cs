@@ -4,6 +4,7 @@ using System.Text;
 using FluentValidation;
 using HRMS.Application.Common;
 using HRMS.Application.DTOs;
+using HRMS.Domain.Enums;
 using HRMS.Domain.Interfaces;
 
 namespace HRMS.Application.Validators
@@ -18,7 +19,7 @@ namespace HRMS.Application.Validators
 
         public EmployeeInputValidator(IUnitOfWork unitOfWork, IEncryptionService encryptionService)
         {
-            // Stop executing further rules for a property once one rule for that property fails
+            // بتوقف باقي الشروط لنفس الحقل أول ما شرط يفشل
             RuleLevelCascadeMode = CascadeMode.Stop;
             _unitOfWork = unitOfWork;
             _encryptionService = encryptionService;
@@ -27,15 +28,24 @@ namespace HRMS.Application.Validators
             RuleFor(x => x.Address).NotEmpty().WithMessage("هذا الحقل مطلوب");
             RuleFor(x => x.Nationality).NotEmpty().WithMessage("هذا الحقل مطلوب");
 
+            
             RuleFor(x => x.PhoneNumber)
-     .NotEmpty().WithMessage("هذا الحقل مطلوب")
-     .Matches(@"^01[0125]\d{8}$").WithMessage("رقم التليفون غير صحيح، يجب ان يبدأ بـ 010 أو 011 أو 012 أو 015 ويتكون من 11 رقم")
-         .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber));
+                .NotEmpty().WithMessage("هذا الحقل مطلوب")
+                .Length(11).WithMessage("رقم التليفون يجب ان يتكون من 11 رقم بالظبط")
+                .Matches(@"^\d{11}$").WithMessage("رقم التليفون يجب ان يتكون من ارقام فقط")
+                .Must(HaveValidEgyptianPrefix)
+                    .WithMessage($"رقم التليفون يجب ان يبدأ بأحد البادئات التالية: {string.Join(", ", EgyptianMobilePrefixes.All)}");
 
+            
             RuleFor(x => x.NationalId)
                 .NotEmpty().WithMessage("هذا الحقل مطلوب")
-                .CustomAsync(ValidateNationalIdAsync)
-                    .When(x => !string.IsNullOrWhiteSpace(x.NationalId));
+                .Length(14).WithMessage("الرقم القومي يجب ان يتكون من 14 رقم بالظبط")
+                .Matches(@"^\d{14}$").WithMessage("الرقم القومي يجب ان يتكون من ارقام فقط")
+                .Must(HaveValidCenturyDigit).WithMessage("الرقم القومي غير صحيح (خانة القرن يجب ان تكون 2 او 3)")
+                .Must(HaveValidBirthDateSegment).WithMessage("الرقم القومي غير صحيح (تاريخ الميلاد المستخرج منه غير صالح)")
+                .Must(HaveValidGovernorateSegment).WithMessage("الرقم القومي غير صحيح (كود المحافظة غير معروف)")
+                .Must(MatchEmployeeBirthDate).WithMessage("تاريخ الميلاد المدخل لا يطابق تاريخ الميلاد المستخرج من الرقم القومي")
+                .MustAsync(BeUniqueNationalIdAsync).WithMessage("هذا الرقم القومي مستخدم بالفعل لموظف اخر");
 
             RuleFor(x => x.BirthDate)
                 .NotEqual(default(DateTime)).WithMessage("هذا الحقل مطلوب")
@@ -46,10 +56,12 @@ namespace HRMS.Application.Validators
                 .Must(d => d.Date >= CompanyFoundationDate).WithMessage($"تاريخ التعاقد لا يمكن ان يكون قبل {CompanyFoundationDate:yyyy/MM/dd}")
                 .Must(d => d.Date <= DateTime.Today).WithMessage("تاريخ التعاقد غير صحيح");
 
+            // شرط عبر حقلين (BirthDate + ContractDate) - الحارس اتحط جوه الـ Must نفسه بدل .When() منفصلة
             RuleFor(x => x.ContractDate)
-                .Must((input, _) => CalculateAge(input.BirthDate, input.ContractDate) >= MinimumAge)
-                .WithMessage($"عمر الموظف وقت التعاقد لا يمكن ان يقل عن {MinimumAge} سنة")
-                .When(x => x.BirthDate != default && x.ContractDate != default);
+                .Must((input, _) =>
+                    input.BirthDate == default || input.ContractDate == default ||
+                    CalculateAge(input.BirthDate, input.ContractDate) >= MinimumAge)
+                .WithMessage($"عمر الموظف وقت التعاقد لا يمكن ان يقل عن {MinimumAge} سنة");
 
             RuleFor(x => x.Salary).GreaterThan(0).WithMessage("الراتب يجب ان يكون رقم صحيح اكبر من صفر");
 
@@ -57,24 +69,38 @@ namespace HRMS.Application.Validators
 
             RuleFor(x => x.DepartureTime)
                 .NotEqual(default(TimeSpan)).WithMessage("هذا الحقل مطلوب")
-                .Must((input, departure) => departure > input.AttendanceTime)
-                    .WithMessage("موعد الانصراف يجب ان يكون بعد موعد الحضور")
-                    .When(x => x.AttendanceTime != default);
+                .Must((input, departure) => input.AttendanceTime == default || departure > input.AttendanceTime)
+                    .WithMessage("موعد الانصراف يجب ان يكون بعد موعد الحضور");
         }
 
-        private async Task ValidateNationalIdAsync(string nationalId, ValidationContext<EmployeeInput> context, CancellationToken ct)
+        // ---------- Helpers ----------
+
+        private static bool HaveValidEgyptianPrefix(string phone) =>
+            EgyptianMobilePrefixes.All.Contains(phone.Substring(0, 3));
+
+        private static bool HaveValidCenturyDigit(string nationalId) =>
+            nationalId[0] == '2' || nationalId[0] == '3';
+
+        private static bool HaveValidBirthDateSegment(string nationalId) =>
+            EgyptianNationalIdHelper.TryDecodeBirthDate(nationalId, out _, out _);
+
+        private static bool HaveValidGovernorateSegment(string nationalId) =>
+            EgyptianNationalIdHelper.TryDecodeGovernorate(nationalId, out _, out _);
+
+        private static bool MatchEmployeeBirthDate(EmployeeInput input, string nationalId)
         {
-            if (!EgyptianNationalIdHelper.TryDecodeBirthDate(nationalId, out _, out var formatError))
-            {
-                context.AddFailure(formatError!);
-                return;
-            }
+            if (!EgyptianNationalIdHelper.TryDecodeBirthDate(nationalId, out var decoded, out _))
+                return true; // الشرط اللي فات فشل بالفعل، مش هنكرر نفس الخطأ هنا
 
+            return decoded.Date == input.BirthDate.Date;
+        }
+
+        private async Task<bool> BeUniqueNationalIdAsync(
+            EmployeeInput input, string nationalId, ValidationContext<EmployeeInput> context, CancellationToken ct)
+        {
             var excludeId = context.RootContextData.TryGetValue("ExcludeEmployeeId", out var v) ? v as int? : null;
-
             var exists = await _unitOfWork.Employees.NationalIdExistsAsync(_encryptionService.Encrypt(nationalId.Trim()), excludeId);
-            if (exists)
-                context.AddFailure("هذا الرقم القومي مستخدم بالفعل لموظف اخر");
+            return !exists;
         }
 
         private static int CalculateAge(DateTime birthDate, DateTime contractDate)
