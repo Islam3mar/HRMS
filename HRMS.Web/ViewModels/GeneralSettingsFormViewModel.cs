@@ -5,12 +5,12 @@ namespace HRMS.Web.ViewModels
 {
     public class GeneralSettingsFormViewModel
     {
-        [Display(Name = "نسبة الاضافي (%)")]
+        [Display(Name = "نسبة الاضافي الكلية شاملة البونص (%)")]
         [Required(ErrorMessage = "من فضلك ادخل بيانات الحقل")]
         [Range(0.01, 500, ErrorMessage = "من فضلك ادخل بيانات الحقل")]
         public decimal AdditionRatePercentage { get; set; }
 
-        [Display(Name = "نسبة الخصم (%)")]
+        [Display(Name = "نسبة الخصم الكلية شاملة العقوبة (%)")]
         [Required(ErrorMessage = "من فضلك ادخل بيانات الحقل")]
         [Range(0.01, 300, ErrorMessage = "من فضلك ادخل بيانات الحقل")]
         public decimal DeductionRatePercentage { get; set; }

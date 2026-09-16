@@ -28,7 +28,8 @@ namespace HRMS.Application.Validators
             RuleFor(x => x.Address).NotEmpty().WithMessage("هذا الحقل مطلوب");
             RuleFor(x => x.Nationality).NotEmpty().WithMessage("هذا الحقل مطلوب");
 
-            
+
+            // ---------- Phone Number Validation ----------
             RuleFor(x => x.PhoneNumber)
                 .NotEmpty().WithMessage("هذا الحقل مطلوب")
                 .Length(11).WithMessage("رقم التليفون يجب ان يتكون من 11 رقم بالظبط")
@@ -36,7 +37,7 @@ namespace HRMS.Application.Validators
                 .Must(HaveValidEgyptianPrefix)
                     .WithMessage($"رقم التليفون يجب ان يبدأ بأحد البادئات التالية: {string.Join(", ", EgyptianMobilePrefixes.All)}");
 
-            
+            // ---------- National ID Validation ----------
             RuleFor(x => x.NationalId)
                 .NotEmpty().WithMessage("هذا الحقل مطلوب")
                 .Length(14).WithMessage("الرقم القومي يجب ان يتكون من 14 رقم بالظبط")
@@ -47,10 +48,14 @@ namespace HRMS.Application.Validators
                 .Must(MatchEmployeeBirthDate).WithMessage("تاريخ الميلاد المدخل لا يطابق تاريخ الميلاد المستخرج من الرقم القومي")
                 .MustAsync(BeUniqueNationalIdAsync).WithMessage("هذا الرقم القومي مستخدم بالفعل لموظف اخر");
 
+
+            // ---------- Date Validation ----------
             RuleFor(x => x.BirthDate)
                 .NotEqual(default(DateTime)).WithMessage("هذا الحقل مطلوب")
                 .Must(d => d.Date <= DateTime.Today).WithMessage("تاريخ الميلاد غير صحيح");
 
+
+            // ---------- Contract Date Validation ----------
             RuleFor(x => x.ContractDate)
                 .NotEqual(default(DateTime)).WithMessage("هذا الحقل مطلوب")
                 .Must(d => d.Date >= CompanyFoundationDate).WithMessage($"تاريخ التعاقد لا يمكن ان يكون قبل {CompanyFoundationDate:yyyy/MM/dd}")

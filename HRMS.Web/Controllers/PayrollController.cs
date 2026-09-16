@@ -171,6 +171,7 @@ namespace HRMS.Web.Controllers
                 AbsenceDaysCount = row.AbsenceDaysCount,
                 OvertimeHours = row.OvertimeHours,
                 DeductionHours = row.DeductionHours,
+                AbsenceDeductionAmount = row.AbsenceDeductionAmount,
                 HourlyRate = hourlyRate,
                 CurrentNetSalary = row.NetSalary,
                 AdditionRatePercentage = 0,
@@ -192,6 +193,7 @@ namespace HRMS.Web.Controllers
             model.DeductionHours = row.DeductionHours;
             model.HourlyRate = hourlyRate;
             model.CurrentNetSalary = row.NetSalary;
+            model.AbsenceDeductionAmount = row.AbsenceDeductionAmount;
         }
         // نفس المعادلة بالظبط المستخدمة فى PayrollService (BuildRow / EditApprovedAsync) - للعرض والمعاينة بس
 
