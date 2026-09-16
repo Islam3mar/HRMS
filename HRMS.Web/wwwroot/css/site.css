@@ -501,33 +501,99 @@ a {
     color: var(--ink-500);
 }
 
-/* ========================= Login Page ========================= */
+/* =========================================================
+   Login Page
+   ========================================================= */
 
 body.login-body {
     margin: 0;
     height: 100vh;
+    font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+    background: var(--surface-0);
+}
+
+.login-shell {
+    display: flex;
+    height: 100vh;
+    direction: ltr; /* عشان النص يكون على الشمال بصريًا في وضع RTL */
+}
+
+.login-brand-panel {
+    flex: 1.1;
+    position: relative;
+    background: var(--teal-900);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    overflow: hidden;
+    color: #fff;
+}
+
+    .login-brand-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle at 20% 20%, rgba(232, 89, 63, 0.18) 0%, transparent 40%), radial-gradient(circle at 85% 80%, rgba(61, 147, 172, 0.25) 0%, transparent 45%), repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 26px);
+    }
+
+.login-brand-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    direction: rtl;
+}
+
+.login-brand-logo {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: #fff;
+    padding: 14px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    margin-bottom: 26px;
+}
+
+.login-brand-content h1 {
+    color: #fff;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.login-brand-content p {
+    color: rgba(255,255,255,0.7);
+    font-size: 15px;
+    max-width: 320px;
+    margin: 0 auto;
+    line-height: 1.8;
+}
+
+.login-form-panel {
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(160deg, var(--teal-900) 0%, var(--teal-700) 100%);
-    font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+    background: var(--surface-0);
+    padding: 40px;
 }
 
 .login-card {
-    background: var(--surface-0);
-    padding: 44px 40px;
-    border-radius: 16px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
-    width: 380px;
+    width: 100%;
+    max-width: 360px;
+    direction: rtl;
 }
 
-.login-logo {
-    text-align: center;
-    margin-bottom: 28px;
-}
+    .login-card h2 {
+        font-size: 22px;
+        margin-bottom: 6px;
+    }
 
-    .login-logo img {
-        max-width: 96px;
+    .login-card .login-subtitle {
+        color: var(--ink-500);
+        font-size: 14px;
+        margin-bottom: 30px;
     }
 
 .form-group {
@@ -567,12 +633,41 @@ body.login-body {
     font-weight: 700;
     cursor: pointer;
     margin-top: 8px;
-    font-family: inherit;
 }
 
     .btn-signin:hover {
         background-color: var(--accent-hover);
     }
+
+@media (max-width: 860px) {
+    .login-shell {
+        flex-direction: column;
+    }
+
+    .login-brand-panel {
+        flex: none;
+        padding: 30px 20px;
+        min-height: 220px;
+    }
+
+    .login-brand-logo {
+        width: 70px;
+        height: 70px;
+        margin-bottom: 14px;
+    }
+
+    .login-brand-content h1 {
+        font-size: 20px;
+    }
+
+    .login-brand-content p {
+        display: none;
+    }
+
+    .login-form-panel {
+        padding: 30px 20px;
+    }
+}
 
 /* ========================= Responsive ========================= */
 
@@ -607,3 +702,52 @@ body.login-body {
         padding: 20px;
     }
 }
+
+/* =========================================================
+   Roles table & disabled-fields polish
+   ========================================================= */
+
+.perm-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.table.text-center tbody tr:hover {
+    background-color: var(--teal-100);
+}
+
+.form-control[readonly],
+.form-select:disabled {
+    background-color: var(--surface-100);
+    color: var(--ink-500);
+    cursor: not-allowed;
+}
+
+/* =========================================================
+   Design polish additions
+   ========================================================= */
+
+.btn-outline-primary {
+    color: var(--teal-700);
+    border-color: var(--teal-700);
+}
+
+    .btn-outline-primary:hover {
+        background-color: var(--teal-700);
+        border-color: var(--teal-700);
+        color: #fff;
+    }
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ink-500);
+}
+
+    .empty-state i {
+        font-size: 28px;
+        display: block;
+        margin-bottom: 8px;
+        color: var(--ink-300);
+    }

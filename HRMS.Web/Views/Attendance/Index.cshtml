@@ -90,7 +90,12 @@
             @if (!Model.Records.Any())
             {
                 <tr>
-                    <td colspan="7" class="text-center py-4" style="color:var(--ink-500)">لا توجد سجلات مطابقة لبحثك</td>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            لا توجد سجلات مطابقة لبحثك
+                        </div>
+                    </td>
                 </tr>
             }
             @foreach (var record in Model.Records)
