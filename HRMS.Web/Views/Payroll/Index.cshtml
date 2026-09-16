@@ -70,11 +70,11 @@
     }
 
     // Update the current day display and schedule next update at midnight so it "changes by itself" when the day ends
-    (function initCurrentDayUpdater(){
+    (function initCurrentDayUpdater() {
         const el = document.getElementById('currentDayDisplay');
         if (!el) return;
 
-        function formatToday(locale){
+        function formatToday(locale) {
             try {
                 const now = new Date();
                 const formatter = new Intl.DateTimeFormat('ar-EG', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -82,7 +82,7 @@
             } catch { return new Date().toLocaleDateString(); }
         }
 
-        function update(){
+        function update() {
             el.textContent = formatToday('ar-EG');
             // compute ms until next midnight
             const now = new Date();
@@ -100,6 +100,7 @@
         <thead>
             <tr>
                 <th class="text-center">العمليات</th>
+                <th>الحالة</th>
                 <th>الصافى</th>
                 <th>اجمالى الخصم</th>
                 <th>اجمالى الاضافى</th>
@@ -116,7 +117,12 @@
             @if (!Model.Rows.Any())
             {
                 <tr>
-                    <td colspan="11" class="text-center py-4" style="color:var(--ink-500)">لا توجد بيانات لعرضها</td>
+                    <td colspan="12">
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            لا توجد بيانات لعرضها
+                        </div>
+                    </td>
                 </tr>
             }
             @foreach (var row in Model.Rows)
@@ -139,6 +145,16 @@
                            target="_blank" title="طباعة مفردات الراتب">
                             <i class="bi bi-printer-fill"></i>
                         </a>
+                    </td>
+                    <td>
+                        @if (row.IsApproved)
+                        {
+                            <span class="status-badge status-approved"><i class="bi bi-lock-fill"></i> معتمد</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-pending"><i class="bi bi-arrow-repeat"></i> جارٍ التحديث</span>
+                        }
                     </td>
                     <td class="fw-bold">@row.NetSalary.ToString("N2")</td>
                     <td>@row.TotalDeductionAmount.ToString("N2")</td>
