@@ -84,6 +84,8 @@
             <tr><th>الخصم بالساعات</th><td>@Model.DeductionHours.ToString("N2")</td></tr>
             <tr><th>اجمالى الاضافى</th><td>@Model.TotalOvertimeAmount.ToString("N2")</td></tr>
             <tr><th>اجمالى الخصم</th><td>@Model.TotalDeductionAmount.ToString("N2")</td></tr>
+            <tr><th>عدد ايام الغياب</th><td>@Model.AbsenceDaysCount</td></tr>
+            <tr><th>خصم الغياب</th><td>@Model.AbsenceDeductionAmount.ToString("N2")</td></tr>
             <tr class="net-row"><th>الصافى</th><td>@Model.NetSalary.ToString("N2")</td></tr>
         </tbody>
     </table>

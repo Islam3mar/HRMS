@@ -29,5 +29,7 @@ namespace HRMS.Web.ViewModels
         [Required(ErrorMessage = "من فضلك ادخل بيانات الحقل")]
         [Range(typeof(decimal), "0", "300", ErrorMessage = "من فضلك ادخل نسبة صحيحة اكبر من او تساوى صفر")]
         public decimal DeductionRatePercentage { get; set; }
+
+        public decimal AbsenceDeductionAmount { get; set; }
     }
 }

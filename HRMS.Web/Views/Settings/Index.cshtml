@@ -18,9 +18,13 @@
                 <div class="col-md-6 offset-md-6">
                     <label asp-for="AdditionRatePercentage" class="form-label"></label>
                     <div class="input-group">
-                        <input asp-for="AdditionRatePercentage" class="form-control settings-field" placeholder="مثال: 10" readonly="@Model.IsExisting" />
+                        <input asp-for="AdditionRatePercentage" class="form-control settings-field" placeholder="مثال: 135" readonly="@Model.IsExisting" />
                         <span class="input-group-text">%</span>
                     </div>
+                    <small class="text-muted d-block mt-1">
+                        ادخل النسبة الكاملة شاملة الـ 100% الاساسية + البونص. مثال: عايز بونص 35% فوق سعر الساعة العادي؟ ادخل 135
+                        (لو سعر الساعة 100 جنيه، هتبقى ساعة الاضافي = 135 جنيه).
+                    </small>
                     <span asp-validation-for="AdditionRatePercentage" class="text-danger"></span>
                 </div>
             </div>
@@ -29,9 +33,13 @@
                 <div class="col-md-6 offset-md-6">
                     <label asp-for="DeductionRatePercentage" class="form-label"></label>
                     <div class="input-group">
-                        <input asp-for="DeductionRatePercentage" class="form-control settings-field" placeholder="مثال: 10" readonly="@Model.IsExisting" />
+                        <input asp-for="DeductionRatePercentage" class="form-control settings-field" placeholder="مثال: 150" readonly="@Model.IsExisting" />
                         <span class="input-group-text">%</span>
                     </div>
+                    <small class="text-muted d-block mt-1">
+                        ادخل النسبة الكاملة اللي هتتخصم من قيمة الساعة كعقوبة تأخير. مثال: عايز يتخصم 50% زيادة عقوبة؟ ادخل 150
+                        (لو سعر الساعة 100 جنيه، هيتخصم من الموظف 150 جنيه عن ساعة التأخير).
+                    </small>
                     <span asp-validation-for="DeductionRatePercentage" class="text-danger"></span>
                 </div>
             </div>

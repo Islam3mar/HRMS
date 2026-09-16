@@ -30,6 +30,7 @@ namespace HRMS.Infrastructure.Repositories
             await Query.AsNoTracking().ToListAsync();
 
         public virtual async Task AddAsync(T entity) => await _dbSet.AddAsync(entity);
+        public virtual async Task AddRangeAsync(IEnumerable<T> entities) => await _dbSet.AddRangeAsync(entities);
         public virtual void Update(T entity) => _dbSet.Update(entity);
         public virtual void Delete(T entity) => _dbSet.Remove(entity);
 

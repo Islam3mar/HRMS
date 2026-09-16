@@ -111,7 +111,10 @@ namespace HRMS.Application.Services
 
             using var workbook = new XLWorkbook(fileStream);
             var sheet = workbook.Worksheets.First();
-            var rows = sheet.RowsUsed().Skip(1);
+            var rows = sheet.RowsUsed().Skip(1).ToList();
+
+            var seenInFile = new HashSet<(int EmployeeId, DateTime Date)>();
+            var recordsToInsert = new List<AttendanceRecord>();
 
             foreach (var row in rows)
             {
@@ -125,7 +128,7 @@ namespace HRMS.Application.Services
                         continue;
                     }
 
-                    if (!employeesById.TryGetValue(employeeId, out var employee))
+                    if (!employeesById.ContainsKey(employeeId))
                     {
                         importResult.FailedCount++;
                         importResult.Errors.Add($"صف {rowNumber}: لا يوجد موظف بكود ({employeeId})");
@@ -138,6 +141,7 @@ namespace HRMS.Application.Services
                         importResult.Errors.Add($"صف {rowNumber}: تاريخ غير صالح");
                         continue;
                     }
+                    date = date.Date;
 
                     var checkIn = ParseTime(row.Cell(4));
                     var checkOut = ParseTime(row.Cell(5));
@@ -149,22 +153,41 @@ namespace HRMS.Application.Services
                         continue;
                     }
 
+                    // تكرار داخل نفس الملف - الـ Validator بيفحص التكرار في الداتابيز بس،
+                    // ومش هيشوف صفوف تانية في نفس الملف لسه ما اتحفظتش خالص
+                    var key = (employeeId, date);
+                    if (!seenInFile.Add(key))
+                    {
+                        importResult.FailedCount++;
+                        importResult.Errors.Add($"صف {rowNumber}: هذا الصف مكرر لنفس الموظف ونفس التاريخ داخل نفس الملف");
+                        continue;
+                    }
+
                     var input = new AttendanceRecordInput
                     {
-                        EmployeeId = employee.Id,
-                        Date = date.Date,
+                        EmployeeId = employeeId,
+                        Date = date,
                         CheckInTime = checkIn.Value,
                         CheckOutTime = checkOut.Value
                     };
 
-                    var result = await CreateAsync(input);
-                    if (!result.Success)
+                    // بننادي نفس الـ Validator المستخدم فى الفورم العادي (CreateAsync/UpdateAsync)
+                    // عشان القواعد تفضل مصدرها مكان واحد بس، مش متكررة هنا بشكل مختلف
+                    var validation = await _validator.ValidateAsync(input);
+                    if (!validation.IsValid)
                     {
                         importResult.FailedCount++;
-                        var error = result.EmployeeIdError ?? result.DateError ?? result.CheckInTimeError ?? result.CheckOutTimeError;
-                        importResult.Errors.Add($"صف {rowNumber}: {error}");
+                        importResult.Errors.Add($"صف {rowNumber}: {validation.Errors.First().ErrorMessage}");
                         continue;
                     }
+
+                    recordsToInsert.Add(new AttendanceRecord
+                    {
+                        EmployeeId = employeeId,
+                        Date = date,
+                        CheckInTime = checkIn.Value,
+                        CheckOutTime = checkOut.Value
+                    });
 
                     importResult.SuccessCount++;
                 }
@@ -173,6 +196,13 @@ namespace HRMS.Application.Services
                     importResult.FailedCount++;
                     importResult.Errors.Add($"صف {rowNumber}: حدث خطأ اثناء قراءة الصف ({ex.Message})");
                 }
+            }
+
+            // ---------- حفظ جماعي واحد بدل SaveChanges منفصل لكل صف ----------
+            if (recordsToInsert.Count > 0)
+            {
+                await _unitOfWork.AttendanceRecords.AddRangeAsync(recordsToInsert);
+                await _unitOfWork.SaveChangesAsync();
             }
 
             return importResult;

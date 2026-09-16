@@ -5,6 +5,12 @@
 
 <h4 class="fw-bold mb-4">تعديل راتب @Model.EmployeeName</h4>
 
+
+<p class="small" style="color:var(--ink-500)">
+    ادخل نسبة الاضافة والخصم كنسبة كاملة شاملة الـ 100% الاساسية (بنفس منطق الاعدادات العامة) — مثال: 135 يعني بونص 35%، 150 يعني عقوبة تأخير 50%.
+    والمبالغ والصافى هتتحسب تلقائيًا وتتحفظ فوق الراتب المعتمد فوراً.
+</p>
+
 <div class="card">
     <div class="card-body">
         <form asp-controller="Payroll" asp-action="Edit" method="post">
@@ -39,6 +45,12 @@
                     <label class="form-label">عدد ايام الغياب</label>
                     <input class="form-control" value="@Model.AbsenceDaysCount" readonly />
                 </div>
+                <div class="col-md-3">
+                    <label class="form-label">خصم الغياب</label>
+                    <input class="form-control" value="@Model.AbsenceDeductionAmount.ToString("N2")" readonly />
+                </div>
+            </div>
+            <div class="row mb-3">
                 <div class="col-md-3">
                     <label class="form-label">سعر الساعة العادى</label>
                     <input class="form-control" value="@Model.HourlyRate.ToString("N2")" readonly />
@@ -103,6 +115,8 @@
         const overtimeHours = @Model.OvertimeHours.ToString(System.Globalization.CultureInfo.InvariantCulture);
         const deductionHours = @Model.DeductionHours.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
+        const absenceDeductionAmount = @Model.AbsenceDeductionAmount.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
         const additionRateInput = document.getElementById('additionRateInput');
         const deductionRateInput = document.getElementById('deductionRateInput');
         const netSalaryPreview = document.getElementById('netSalaryPreview');
@@ -111,12 +125,12 @@
             const additionRate = parseFloat(additionRateInput.value) || 0;
             const deductionRate = parseFloat(deductionRateInput.value) || 0;
 
-            const overtimeHourRate = hourlyRate * (1 + additionRate / 100);
+            const overtimeHourRate = hourlyRate * (additionRate / 100);
             const deductionHourRate = hourlyRate * (deductionRate / 100);
 
             const totalOvertime = overtimeHours * overtimeHourRate;
             const totalDeduction = deductionHours * deductionHourRate;
-            const netSalary = baseSalary + totalOvertime - totalDeduction;
+            const netSalary = baseSalary - absenceDeductionAmount + totalOvertime - totalDeduction;
 
             netSalaryPreview.value = netSalary.toFixed(2);
         }
