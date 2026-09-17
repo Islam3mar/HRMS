@@ -28,6 +28,11 @@ namespace HRMS.Application.Services
         public async Task<IEnumerable<AttendanceRecord>> SearchAllAsync(AttendanceSearchFilter filter)
             => await _unitOfWork.AttendanceRecords.SearchAllAsync(filter);
 
+
+        public async Task<PagedResult<EmployeeAttendanceGroup>> SearchGroupedByEmployeeAsync(AttendanceSearchFilter filter)
+    => await _unitOfWork.AttendanceRecords.SearchGroupedByEmployeeAsync(filter);
+
+
         public async Task<AttendanceRecord?> GetByIdAsync(int id)
             => await _unitOfWork.AttendanceRecords.GetByIdWithDetailsAsync(id);
 
@@ -211,31 +216,47 @@ namespace HRMS.Application.Services
         // ==================== قالب الاستيراد ====================
         public async Task<byte[]> GenerateImportTemplateAsync()
         {
-            var employees = (await _unitOfWork.Employees.GetAllAsync()).OrderBy(e => e.FullName);
+            var employees = (await _unitOfWork.Employees.GetAllAsync()).OrderBy(e => e.FullName).ToList();
 
             using var workbook = new XLWorkbook();
-            var sheet = workbook.Worksheets.Add("قالب الاستيراد");
-            sheet.RightToLeft = true;
 
-            sheet.Cell(1, 1).Value = "كود الموظف";
-            sheet.Cell(1, 2).Value = "اسم الموظف (للمراجعة فقط - متتعدلش)";
-            sheet.Cell(1, 3).Value = "التاريخ";
-            sheet.Cell(1, 4).Value = "وقت الحضور";
-            sheet.Cell(1, 5).Value = "وقت الانصراف";
-            sheet.Row(1).Style.Font.Bold = true;
+            // شيت 1: منطقة إدخال البيانات - لازم تفضل فاضية تمامًا من أول صف بيانات (Row 2)
+            var dataSheet = workbook.Worksheets.Add("قالب الاستيراد");
+            dataSheet.RightToLeft = true;
+
+            dataSheet.Cell(1, 1).Value = "كود الموظف";
+            dataSheet.Cell(1, 2).Value = "اسم الموظف (للمراجعة فقط - متتعدلش)";
+            dataSheet.Cell(1, 3).Value = "التاريخ";
+            dataSheet.Cell(1, 4).Value = "وقت الحضور";
+            dataSheet.Cell(1, 5).Value = "وقت الانصراف";
+            dataSheet.Row(1).Style.Font.Bold = true;
+            dataSheet.SheetView.FreezeRows(1);
+
+            dataSheet.Column(3).Style.DateFormat.Format = "yyyy-mm-dd";
+            dataSheet.Column(4).Style.DateFormat.Format = "hh:mm";
+            dataSheet.Column(5).Style.DateFormat.Format = "hh:mm";
+            dataSheet.Columns(1, 5).AdjustToContents();
+
+            // شيت 2: مرجع أكواد الموظفين - منفصل تمامًا عن منطقة الإدخال عشان محدش يتلخبط
+            var lookupSheet = workbook.Worksheets.Add("أكواد الموظفين");
+            lookupSheet.RightToLeft = true;
+
+            lookupSheet.Cell(1, 1).Value = "كود الموظف";
+            lookupSheet.Cell(1, 2).Value = "اسم الموظف";
+            lookupSheet.Row(1).Style.Font.Bold = true;
+            lookupSheet.SheetView.FreezeRows(1);
 
             var rowIndex = 2;
             foreach (var employee in employees)
             {
-                sheet.Cell(rowIndex, 1).Value = employee.Id;
-                sheet.Cell(rowIndex, 2).Value = employee.FullName;
+                lookupSheet.Cell(rowIndex, 1).Value = employee.Id;
+                lookupSheet.Cell(rowIndex, 2).Value = employee.FullName;
                 rowIndex++;
             }
 
-            sheet.Column(3).Style.DateFormat.Format = "yyyy-mm-dd";
-            sheet.Column(4).Style.DateFormat.Format = "hh:mm";
-            sheet.Column(5).Style.DateFormat.Format = "hh:mm";
-            sheet.Columns().AdjustToContents();
+            lookupSheet.Columns().AdjustToContents();
+
+            dataSheet.Workbook.Worksheets.Worksheet("قالب الاستيراد").SetTabActive();
 
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);
@@ -256,30 +277,53 @@ namespace HRMS.Application.Services
         // ==================== تصدير Excel ====================
         public async Task<byte[]> ExportToExcelAsync(AttendanceSearchFilter filter)
         {
-            var records = await _unitOfWork.AttendanceRecords.SearchAllAsync(filter);
+            var records = (await _unitOfWork.AttendanceRecords.SearchAllAsync(filter)).ToList();
+
+            var grouped = records
+                .GroupBy(r => r.EmployeeId)
+                .Select(g => new
+                {
+                    EmployeeName = g.First().Employee.FullName,
+                    DepartmentName = g.First().Employee.Department?.Name ?? "-",
+                    Records = g.OrderByDescending(r => r.Date).ToList()
+                })
+                .OrderBy(g => g.EmployeeName)
+                .ToList();
 
             using var workbook = new XLWorkbook();
             var sheet = workbook.Worksheets.Add("تقرير الحضور والانصراف");
             sheet.RightToLeft = true;
 
-            sheet.Cell(1, 1).Value = "م";
-            sheet.Cell(1, 2).Value = "اسم الموظف";
-            sheet.Cell(1, 3).Value = "القسم";
-            sheet.Cell(1, 4).Value = "التاريخ";
-            sheet.Cell(1, 5).Value = "وقت الحضور";
-            sheet.Cell(1, 6).Value = "وقت الانصراف";
-            sheet.Row(1).Style.Font.Bold = true;
+            var currentRow = 1;
 
-            var rowIndex = 2;
-            foreach (var record in records)
+            foreach (var group in grouped)
             {
-                sheet.Cell(rowIndex, 1).Value = rowIndex - 1;
-                sheet.Cell(rowIndex, 2).Value = record.Employee.FullName;
-                sheet.Cell(rowIndex, 3).Value = record.Employee.Department?.Name ?? "-";
-                sheet.Cell(rowIndex, 4).Value = record.Date.ToString("yyyy/MM/dd");
-                sheet.Cell(rowIndex, 5).Value = record.CheckInTime.ToString(@"hh\:mm");
-                sheet.Cell(rowIndex, 6).Value = record.CheckOutTime.ToString(@"hh\:mm");
-                rowIndex++;
+                // عنوان مجموعة الموظف - صف واحد ممتد عبر الأعمدة
+                var headerRange = sheet.Range(currentRow, 1, currentRow, 4);
+                headerRange.Merge();
+                headerRange.Value = $"{group.EmployeeName} — {group.DepartmentName} ({group.Records.Count} سجل)";
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#E4F0F3");
+                currentRow++;
+
+                sheet.Cell(currentRow, 1).Value = "م";
+                sheet.Cell(currentRow, 2).Value = "التاريخ";
+                sheet.Cell(currentRow, 3).Value = "وقت الحضور";
+                sheet.Cell(currentRow, 4).Value = "وقت الانصراف";
+                sheet.Row(currentRow).Style.Font.Bold = true;
+                currentRow++;
+
+                var rowNumber = 1;
+                foreach (var record in group.Records)
+                {
+                    sheet.Cell(currentRow, 1).Value = rowNumber++;
+                    sheet.Cell(currentRow, 2).Value = record.Date.ToString("yyyy/MM/dd");
+                    sheet.Cell(currentRow, 3).Value = record.CheckInTime.ToString(@"hh\:mm");
+                    sheet.Cell(currentRow, 4).Value = record.CheckOutTime.ToString(@"hh\:mm");
+                    currentRow++;
+                }
+
+                currentRow++; // سطر فاضي يفصل بين كل موظف والتاني
             }
 
             sheet.Columns().AdjustToContents();

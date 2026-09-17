@@ -20,6 +20,8 @@ namespace HRMS.Application.Interfaces
         Task<AttendanceImportResult> ImportFromExcelAsync(Stream fileStream);
         Task<byte[]> ExportToExcelAsync(AttendanceSearchFilter filter);
 
+        Task<PagedResult<EmployeeAttendanceGroup>> SearchGroupedByEmployeeAsync(AttendanceSearchFilter filter);
+
         Task<byte[]> GenerateImportTemplateAsync();
     }
 }

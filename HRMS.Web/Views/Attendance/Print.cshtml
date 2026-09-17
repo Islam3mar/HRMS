@@ -1,6 +1,17 @@
 ﻿@model IEnumerable<HRMS.Domain.Entities.AttendanceRecord>
 @{
     Layout = null;
+
+    var grouped = Model
+        .GroupBy(r => r.EmployeeId)
+        .Select(g => new
+        {
+            EmployeeName = g.First().Employee.FullName,
+            DepartmentName = g.First().Employee.Department?.Name ?? "-",
+            Records = g.OrderByDescending(r => r.Date).ToList()
+        })
+        .OrderBy(g => g.EmployeeName)
+        .ToList();
 }
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -17,6 +28,20 @@
             h3 {
                 text-align: center;
                 margin-bottom: 20px;
+            }
+
+            .employee-section {
+                margin-bottom: 26px;
+                page-break-inside: avoid;
+            }
+
+            .employee-title {
+                background-color: #E4F0F3;
+                color: #0B3D4C;
+                font-weight: bold;
+                padding: 8px 12px;
+                border: 1px solid #999;
+                border-bottom: none;
             }
 
             table {
@@ -63,33 +88,35 @@
 
     <h3>تقرير الحضور و الانصراف للموظفين</h3>
 
-    <table>
-        <thead>
-            <tr>
-                <th>م</th>
-                <th>القسم</th>
-                <th>اسم الموظف</th>
-                <th>وقت الحضور</th>
-                <th>وقت الانصراف</th>
-                <th>التاريخ</th>
-            </tr>
-        </thead>
-        <tbody>
-            @{
-                var i = 1;
-            }
-            @foreach (var record in Model)
-            {
-                <tr>
-                    <td>@(i++)</td>
-                    <td>@(record.Employee.Department?.Name ?? "-")</td>
-                    <td>@record.Employee.FullName</td>
-                    <td>@record.CheckInTime.ToString(@"hh\:mm")</td>
-                    <td>@record.CheckOutTime.ToString(@"hh\:mm")</td>
-                    <td>@record.Date.ToString("yyyy/MM/dd")</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    @foreach (var group in grouped)
+    {
+        <div class="employee-section">
+            <div class="employee-title">@group.EmployeeName — @group.DepartmentName (@group.Records.Count سجل)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>م</th>
+                        <th>التاريخ</th>
+                        <th>وقت الحضور</th>
+                        <th>وقت الانصراف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var i = 1;
+                    }
+                    @foreach (var record in group.Records)
+                    {
+                        <tr>
+                            <td>@(i++)</td>
+                            <td>@record.Date.ToString("yyyy/MM/dd")</td>
+                            <td>@record.CheckInTime.ToString(@"hh\:mm")</td>
+                            <td>@record.CheckOutTime.ToString(@"hh\:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </body>
 </html>

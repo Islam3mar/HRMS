@@ -751,3 +751,115 @@ body.login-body {
         margin-bottom: 8px;
         color: var(--ink-300);
     }
+
+
+
+
+/* =========================================================
+   Attendance accordion (Group by Employee)
+   ========================================================= */
+
+.accordion-item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius) !important;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.accordion-button {
+    background: var(--surface-0);
+    font-family: 'Cairo', sans-serif;
+    padding: 14px 20px;
+}
+
+    .accordion-button:not(.collapsed) {
+        background: var(--teal-100);
+        color: var(--teal-900);
+        box-shadow: none;
+    }
+
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: var(--border);
+    }
+
+.record-count-badge {
+    background: var(--teal-100);
+    color: var(--teal-700);
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-inline-start: auto;
+    margin-inline-end: 10px;
+}
+
+
+/* =========================================================
+   Dashboard stat cards
+   ========================================================= */
+
+.stat-card {
+    border: none;
+    border-top: 4px solid var(--teal-500);
+    text-align: center;
+    transition: box-shadow 0.15s ease;
+}
+
+    .stat-card.stat-danger {
+        border-top-color: var(--danger);
+    }
+
+    .stat-card.stat-success {
+        border-top-color: var(--success);
+    }
+
+.stat-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-size: 20px;
+    background: var(--teal-100);
+    color: var(--teal-700);
+}
+
+.stat-card.stat-danger .stat-icon {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+.stat-card.stat-success .stat-icon {
+    background: var(--success-bg);
+    color: var(--success);
+}
+
+a.stat-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+    a.stat-card-link:hover .stat-card {
+        box-shadow: 0 4px 14px rgba(11, 61, 76, 0.12);
+    }
+
+.quick-link-group-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-500);
+    margin: 16px 0 8px;
+}
+
+    .quick-link-group-title:first-child {
+        margin-top: 0;
+    }
+
+.quick-link-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

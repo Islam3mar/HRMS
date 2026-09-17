@@ -53,6 +53,45 @@ namespace HRMS.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<PagedResult<EmployeeAttendanceGroup>> SearchGroupedByEmployeeAsync(AttendanceSearchFilter filter)
+        {
+            // نفس منطق SearchAllAsync بالظبط (كل السجلات المطابقة للفلتر، من غير Pagination على مستوى السجل)
+            var allMatchingRecords = await BuildFilteredQuery(filter)
+                .OrderByDescending(a => a.Date)
+                .ToListAsync();
+
+            // تجميع فى الذاكرة حسب الموظف، وترتيب المجموعات بالاسم
+            var groupedAll = allMatchingRecords
+                .GroupBy(a => a.EmployeeId)
+                .Select(g => new EmployeeAttendanceGroup
+                {
+                    EmployeeId = g.Key,
+                    EmployeeName = g.First().Employee.FullName,
+                    DepartmentName = g.First().Employee.Department?.Name ?? "-",
+                    RecordsCount = g.Count(),
+                    Records = g.ToList()
+                })
+                .OrderBy(g => g.EmployeeName)
+                .ToList();
+
+            var totalEmployees = groupedAll.Count;
+
+            // دلوقتي الـ Skip/Take بتاع الـ Pagination بيحصل على عدد الموظفين مش عدد السجلات
+            var pagedGroups = groupedAll
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToList();
+
+            return new PagedResult<EmployeeAttendanceGroup>
+            {
+                Items = pagedGroups,
+                TotalCount = totalEmployees,
+                Page = filter.Page,
+                PageSize = filter.PageSize
+            };
+        }
+
+
         public async Task<bool> RecordExistsAsync(int employeeId, DateTime date, int? excludeId = null)
         {
             return await Query.AnyAsync(a => a.EmployeeId == employeeId &&

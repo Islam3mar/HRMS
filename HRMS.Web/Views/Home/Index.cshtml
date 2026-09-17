@@ -15,34 +15,42 @@
 
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        <div class="card text-center h-100">
+        <div class="card stat-card h-100">
             <div class="card-body">
+                <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
                 <div class="fs-2 fw-bold" style="color:var(--teal-700);">@Model.TotalEmployees</div>
                 <div style="color:var(--ink-500);">اجمالى الموظفين</div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card text-center h-100">
+        <div class="card stat-card h-100">
             <div class="card-body">
+                <div class="stat-icon"><i class="bi bi-diagram-3-fill"></i></div>
                 <div class="fs-2 fw-bold" style="color:var(--teal-700);">@Model.TotalDepartments</div>
                 <div style="color:var(--ink-500);">اجمالى الاقسام</div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <div class="fs-2 fw-bold" style="color:var(--success);">@Model.PresentTodayCount</div>
-                <div style="color:var(--ink-500);">حاضرين النهاردة</div>
+        <a class="stat-card-link" asp-controller="Attendance" asp-action="Index"
+           asp-route-FromDate="@DateTime.Today.ToString("yyyy-MM-dd")"
+           asp-route-ToDate="@DateTime.Today.ToString("yyyy-MM-dd")">
+            <div class="card stat-card stat-success h-100">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+                    <div class="fs-2 fw-bold" style="color:var(--success);">@Model.PresentTodayCount</div>
+                    <div style="color:var(--ink-500);">حاضرين النهاردة</div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3">
-        <div class="card text-center h-100">
+        <div class="card stat-card @(Model.IsTodayHoliday ? "" : "stat-danger") h-100">
             @if (Model.IsTodayHoliday)
             {
                 <div class="card-body">
+                    <div class="stat-icon"><i class="bi bi-calendar-heart-fill"></i></div>
                     <div class="fs-5 fw-bold" style="color:var(--teal-500);">اجازة</div>
                     <div style="color:var(--ink-500);">@Model.TodayHolidayReason</div>
                 </div>
@@ -50,6 +58,7 @@
             else
             {
                 <div class="card-body">
+                    <div class="stat-icon"><i class="bi bi-x-circle-fill"></i></div>
                     <div class="fs-2 fw-bold" style="color:var(--danger);">@Model.AbsentTodayCount</div>
                     <div style="color:var(--ink-500);">غائبين النهاردة</div>
                 </div>
@@ -87,15 +96,24 @@
         <div class="card h-100">
             <div class="card-header">روابط سريعة</div>
             <div class="card-body">
+                <div class="quick-link-group-title">بيانات الموظفين</div>
+                <div class="row g-2 mb-2">
+                    <div class="col-6"><a asp-controller="Employees" asp-action="Index" class="btn btn-outline-primary w-100 quick-link-btn"><i class="bi bi-people"></i> الموظفين</a></div>
+                    <div class="col-6"><a asp-controller="Departments" asp-action="Index" class="btn btn-outline-primary w-100 quick-link-btn"><i class="bi bi-diagram-3"></i> الاقسام</a></div>
+                    <div class="col-6"><a asp-controller="Attendance" asp-action="Index" class="btn btn-outline-primary w-100 quick-link-btn"><i class="bi bi-calendar-check"></i> الحضور والانصراف</a></div>
+                </div>
+
+                <div class="quick-link-group-title">الرواتب</div>
+                <div class="row g-2 mb-2">
+                    <div class="col-6"><a asp-controller="Payroll" asp-action="Index" class="btn btn-outline-primary w-100 quick-link-btn"><i class="bi bi-cash-stack"></i> رواتب الموظفين</a></div>
+                    <div class="col-6"><a asp-controller="OfficialHolidays" asp-action="Index" class="btn btn-outline-primary w-100 quick-link-btn"><i class="bi bi-calendar-event"></i> الاجازات الرسمية</a></div>
+                    <div class="col-6"><a asp-controller="Settings" asp-action="Index" class="btn btn-outline-primary w-100 quick-link-btn"><i class="bi bi-sliders"></i> الاعدادات العامة</a></div>
+                </div>
+
+                <div class="quick-link-group-title">الإدارة</div>
                 <div class="row g-2">
-                    <div class="col-6"><a asp-controller="Employees" asp-action="Index" class="btn btn-outline-primary w-100">الموظفين</a></div>
-                    <div class="col-6"><a asp-controller="Attendance" asp-action="Index" class="btn btn-outline-primary w-100">الحضور والانصراف</a></div>
-                    <div class="col-6"><a asp-controller="Payroll" asp-action="Index" class="btn btn-outline-primary w-100">رواتب الموظفين</a></div>
-                    <div class="col-6"><a asp-controller="OfficialHolidays" asp-action="Index" class="btn btn-outline-primary w-100">الاجازات الرسمية</a></div>
-                    <div class="col-6"><a asp-controller="Departments" asp-action="Index" class="btn btn-outline-secondary w-100">الاقسام</a></div>
-                    <div class="col-6"><a asp-controller="Settings" asp-action="Index" class="btn btn-outline-secondary w-100">الاعدادات العامة</a></div>
-                    <div class="col-6"><a asp-controller="Users" asp-action="Index" class="btn btn-outline-secondary w-100">مستخدمين النظام</a></div>
-                    <div class="col-6"><a asp-controller="Roles" asp-action="Index" class="btn btn-outline-secondary w-100">مجموعات المستخدمين</a></div>
+                    <div class="col-6"><a asp-controller="Users" asp-action="Index" class="btn btn-outline-secondary w-100 quick-link-btn"><i class="bi bi-person-badge"></i> مستخدمين النظام</a></div>
+                    <div class="col-6"><a asp-controller="Roles" asp-action="Index" class="btn btn-outline-secondary w-100 quick-link-btn"><i class="bi bi-shield-lock"></i> مجموعات المستخدمين</a></div>
                 </div>
             </div>
         </div>

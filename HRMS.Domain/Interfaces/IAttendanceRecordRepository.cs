@@ -18,5 +18,8 @@ namespace HRMS.Domain.Interfaces
 
         // قاعدة رقم 6: مفيش أكتر من سجل لنفس الموظف فى نفس اليوم
         Task<bool> RecordExistsAsync(int employeeId, DateTime date, int? excludeId = null);
+
+        // بحث بصفحات بس على مستوى الموظفين مش السجلات - كل موظف "صفحة/عنصر" واحد ومعاه كل سجلاته
+        Task<PagedResult<EmployeeAttendanceGroup>> SearchGroupedByEmployeeAsync(AttendanceSearchFilter filter);
     }
 }
