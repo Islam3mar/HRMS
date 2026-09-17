@@ -20,7 +20,7 @@ namespace HRMS.Application.Services
 
         // تاريخ تأسيس الشركة - نفس التاريخ المستخدم فى EmployeeService (قاعدة رقم 6 هناك)
         // عدّله هنا لو اتغير هناك عشان يفضلوا متطابقين
-        private static readonly DateTime CompanyFoundationDate = new(2005, 6, 6);
+        private static readonly DateTime CompanyFoundationDate = new(2008, 1, 1);
 
         public int MinimumAllowedYear => CompanyFoundationDate.Year;
 

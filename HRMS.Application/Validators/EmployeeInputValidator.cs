@@ -95,7 +95,7 @@ namespace HRMS.Application.Validators
         private static bool MatchEmployeeBirthDate(EmployeeInput input, string nationalId)
         {
             if (!EgyptianNationalIdHelper.TryDecodeBirthDate(nationalId, out var decoded, out _))
-                return true; // الشرط اللي فات فشل بالفعل، مش هنكرر نفس الخطأ هنا
+                return false; // الشرط اللي فات فشل بالفعل، مش هنكرر نفس الخطأ هنا
 
             return decoded.Date == input.BirthDate.Date;
         }
