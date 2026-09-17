@@ -69,7 +69,6 @@
         }
     }
 
-    // Update the current day display and schedule next update at midnight so it "changes by itself" when the day ends
     (function initCurrentDayUpdater() {
         const el = document.getElementById('currentDayDisplay');
         if (!el) return;
@@ -84,10 +83,9 @@
 
         function update() {
             el.textContent = formatToday('ar-EG');
-            // compute ms until next midnight
             const now = new Date();
             const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-            const ms = tomorrow.getTime() - now.getTime() + 1000; // small buffer
+            const ms = tomorrow.getTime() - now.getTime() + 1000;
             setTimeout(update, ms);
         }
 
@@ -99,18 +97,18 @@
     <table class="table align-middle mb-0">
         <thead>
             <tr>
-                <th class="text-center">العمليات</th>
-                <th>الحالة</th>
-                <th>الصافى</th>
-                <th>اجمالى الخصم</th>
-                <th>اجمالى الاضافى</th>
-                <th>الخصم بالساعات</th>
-                <th>الاضافى بالساعات</th>
-                <th>عدد ايام الغياب</th>
-                <th>عدد ايام الحضور</th>
-                <th>الراتب الاساسى</th>
-                <th>القسم</th>
                 <th>اسم الموظف</th>
+                <th>القسم</th>
+                <th>الراتب الاساسى</th>
+                <th>عدد ايام الحضور</th>
+                <th>عدد ايام الغياب</th>
+                <th>الاضافى بالساعات</th>
+                <th>الخصم بالساعات</th>
+                <th>اجمالى الاضافى</th>
+                <th>اجمالى الخصم</th>
+                <th>الصافى</th>
+                <th>الحالة</th>
+                <th class="text-center">العمليات</th>
             </tr>
         </thead>
         <tbody>
@@ -128,6 +126,26 @@
             @foreach (var row in Model.Rows)
             {
                 <tr>
+                    <td>@row.EmployeeName</td>
+                    <td>@row.DepartmentName</td>
+                    <td>@row.BaseSalary.ToString("N2")</td>
+                    <td>@row.AttendanceDaysCount</td>
+                    <td>@row.AbsenceDaysCount</td>
+                    <td>@row.OvertimeHours.ToString("N2")</td>
+                    <td>@row.DeductionHours.ToString("N2")</td>
+                    <td>@row.TotalOvertimeAmount.ToString("N2")</td>
+                    <td>@row.TotalDeductionAmount.ToString("N2")</td>
+                    <td class="fw-bold">@row.NetSalary.ToString("N2")</td>
+                    <td>
+                        @if (row.IsApproved)
+                        {
+                            <span class="status-badge status-approved"><i class="bi bi-lock-fill"></i> معتمد</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-pending"><i class="bi bi-arrow-repeat"></i> جارٍ التحديث</span>
+                        }
+                    </td>
                     <td class="text-center">
                         <a class="btn-icon"
                            asp-action="Edit"
@@ -146,26 +164,6 @@
                             <i class="bi bi-printer-fill"></i>
                         </a>
                     </td>
-                    <td>
-                        @if (row.IsApproved)
-                        {
-                            <span class="status-badge status-approved"><i class="bi bi-lock-fill"></i> معتمد</span>
-                        }
-                        else
-                        {
-                            <span class="status-badge status-pending"><i class="bi bi-arrow-repeat"></i> جارٍ التحديث</span>
-                        }
-                    </td>
-                    <td class="fw-bold">@row.NetSalary.ToString("N2")</td>
-                    <td>@row.TotalDeductionAmount.ToString("N2")</td>
-                    <td>@row.TotalOvertimeAmount.ToString("N2")</td>
-                    <td>@row.DeductionHours.ToString("N2")</td>
-                    <td>@row.OvertimeHours.ToString("N2")</td>
-                    <td>@row.AbsenceDaysCount</td>
-                    <td>@row.AttendanceDaysCount</td>
-                    <td>@row.BaseSalary.ToString("N2")</td>
-                    <td>@row.DepartmentName</td>
-                    <td>@row.EmployeeName</td>
                 </tr>
             }
         </tbody>

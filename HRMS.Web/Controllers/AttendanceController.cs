@@ -125,11 +125,11 @@ namespace HRMS.Web.Controllers
         private async Task<AttendanceIndexViewModel> BuildIndexViewModel(AttendanceSearchViewModel search)
         {
             var filter = BuildFilter(search, forExportOrPrint: false);
-            var paged = await _attendanceService.SearchAsync(filter);
+            var paged = await _attendanceService.SearchGroupedByEmployeeAsync(filter);
 
             return new AttendanceIndexViewModel
             {
-                Records = paged.Items,
+                Groups = paged.Items,
                 Page = paged.Page,
                 PageSize = paged.PageSize,
                 TotalCount = paged.TotalCount,
