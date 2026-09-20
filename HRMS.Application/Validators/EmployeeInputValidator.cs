@@ -24,7 +24,10 @@ namespace HRMS.Application.Validators
             _unitOfWork = unitOfWork;
             _encryptionService = encryptionService;
 
-            RuleFor(x => x.FullName).NotEmpty().WithMessage("هذا الحقل مطلوب");
+            RuleFor(x => x.FullName)
+                .NotEmpty().WithMessage("هذا الحقل مطلوب")
+                .MustAsync(BeUniqueFullNameAsync).WithMessage("هذا الاسم مستخدم بالفعل لموظف اخر");
+
             RuleFor(x => x.Address).NotEmpty().WithMessage("هذا الحقل مطلوب");
             RuleFor(x => x.Nationality).NotEmpty().WithMessage("هذا الحقل مطلوب");
 
@@ -98,6 +101,14 @@ namespace HRMS.Application.Validators
                 return false; // الشرط اللي فات فشل بالفعل، مش هنكرر نفس الخطأ هنا
 
             return decoded.Date == input.BirthDate.Date;
+        }
+
+        private async Task<bool> BeUniqueFullNameAsync(
+            EmployeeInput input, string fullName, ValidationContext<EmployeeInput> context, CancellationToken ct)
+        {
+            var excludeId = context.RootContextData.TryGetValue("ExcludeEmployeeId", out var v) ? v as int? : null;
+            var exists = await _unitOfWork.Employees.FullNameExistsAsync(fullName.Trim(), excludeId);
+            return !exists;
         }
 
         private async Task<bool> BeUniqueNationalIdAsync(

@@ -58,5 +58,12 @@ namespace HRMS.Infrastructure.Repositories
                 .Select(e => new EmployeeSchedule(e.AttendanceTime, e.DepartureTime, e.Salary, e.ContractDate))
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<bool> FullNameExistsAsync(string fullName, int? excludeEmployeeId = null)
+        {
+            return await Query
+                .AnyAsync(e => e.FullName == fullName &&
+                               (excludeEmployeeId == null || e.Id != excludeEmployeeId));
+        }
     }
 }
