@@ -20,6 +20,7 @@ namespace HRMS.Domain.Specifications.Attendance
         private static Expression<Func<AttendanceRecord, bool>> BuildCriteria(AttendanceSearchFilter filter)
         {
             return a =>
+                (!filter.EmployeeId.HasValue || a.EmployeeId == filter.EmployeeId.Value) &&
                 (string.IsNullOrWhiteSpace(filter.EmployeeName) ||
                     a.Employee.FullName.Contains(filter.EmployeeName) ||
                     (a.Employee.Department != null && a.Employee.Department.Name.Contains(filter.EmployeeName))) &&
@@ -29,3 +30,4 @@ namespace HRMS.Domain.Specifications.Attendance
         }
     }
 }
+

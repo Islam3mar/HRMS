@@ -13,6 +13,8 @@ namespace HRMS.Domain.Interfaces
         Task<IEnumerable<Employee>> GetByDepartmentAsync(int departmentId);
         Task<bool> NationalIdExistsAsync(string nationalId, int? excludeEmployeeId = null);
 
+        Task<bool> FullNameExistsAsync(string fullName, int? excludeEmployeeId = null);
+
         Task<EmployeeSchedule?> GetScheduleAsync(int employeeId);
     }
 }

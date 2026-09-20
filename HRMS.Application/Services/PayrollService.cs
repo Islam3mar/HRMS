@@ -47,20 +47,25 @@ namespace HRMS.Application.Services
                 return result;
             }
 
-            var employees = (await _unitOfWork.Employees.GetAllAsync()).ToList();
-
             // قاعدة 1: البحث باسم موظف غير موجود
+            // ملحوظة: الفلترة بالاسم بقت بتتم فى الداتابيز نفسها (SQL LIKE) عن طريق
+            // SearchByNameAsync (اللى بتستخدم EmployeesByNameSpecification) بدل ما كنا
+            // بنجيب كل الموظفين GetAllAsync() ونفلترهم هنا فى الـ C# Memory
+            List<Employee> employees;
+
             if (!string.IsNullOrWhiteSpace(filter.EmployeeName))
             {
-                employees = employees
-                    .Where(e => e.FullName.Contains(filter.EmployeeName.Trim(), StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+                employees = (await _unitOfWork.Employees.SearchByNameAsync(filter.EmployeeName.Trim())).ToList();
 
                 if (employees.Count == 0)
                 {
                     result.SearchError = "لا يوجد موظف بهذا الاسم، من فضلك ادخل اسم موظف صالح";
                     return result;
                 }
+            }
+            else
+            {
+                employees = (await _unitOfWork.Employees.GetAllAsync()).ToList();
             }
 
             // السجلات المعتمدة (المحفوظة) بالفعل عن الشهر/السنة دول - بنجيبها مرة واحدة لكل الموظفين
@@ -115,16 +120,18 @@ namespace HRMS.Application.Services
 
             var (monthStart, monthEnd) = GetMonthRange(month, year);
 
+            // بنضيف EmployeeId فى الفلتر نفسه عشان السجلات المطلوبة بس هى اللي تتجاب من
+            // الداتابيز (SQL WHERE EmployeeId = ...)، بدل ما كنا بنجيب سجلات كل الموظفين
+            // فى الشهر ده ونفلترها هنا لموظف واحد بس فى الـ Memory
             var attendanceFilter = new AttendanceSearchFilter
             {
+                EmployeeId = employeeId,
                 FromDate = monthStart,
                 ToDate = monthEnd,
                 Page = 1,
                 PageSize = int.MaxValue
             };
-            var records = (await _unitOfWork.AttendanceRecords.SearchAllAsync(attendanceFilter))
-                .Where(r => r.EmployeeId == employeeId)
-                .ToList();
+            var records = (await _unitOfWork.AttendanceRecords.SearchAllAsync(attendanceFilter)).ToList();
 
             return BuildRow(employee, records, settings, holidays, monthStart, monthEnd, month, year);
         }
