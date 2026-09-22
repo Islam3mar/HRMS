@@ -25,5 +25,8 @@ namespace HRMS.Domain.Entities
 
         public int? DepartmentId { get; set; }         // مطلوبة ضمنياً من شاشة تقرير الحضور (فيها عمود "القسم")
         public Department? Department { get; set; }
+
+        // حالة الموظف: false = منتهي الخدمة (Soft Delete) - بيانات تاريخه المالي (رواتب/حضور) تفضل سليمة
+        public bool IsActive { get; set; } = true;
     }
 }

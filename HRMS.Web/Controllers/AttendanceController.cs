@@ -151,7 +151,7 @@ namespace HRMS.Web.Controllers
 
         private async Task<List<SelectListItem>> GetEmployeeOptionsAsync()
         {
-            var employees = await _employeeService.GetAllEmployeesAsync();
+            var employees = await _employeeService.GetActiveEmployeesAsync();
             return employees.Select(e => new SelectListItem
             {
                 Value = e.Id.ToString(),

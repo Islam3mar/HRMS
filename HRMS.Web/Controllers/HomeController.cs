@@ -32,7 +32,7 @@ namespace HRMS.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var employees = (await _employeeService.GetAllEmployeesAsync()).ToList();
+            var employees = (await _employeeService.GetActiveEmployeesAsync()).ToList();
             var departments = (await _departmentService.GetAllAsync()).ToList();
             var settings = await _settingsService.GetSettingsAsync();
             var holidays = (await _holidayService.GetAllAsync()).ToList();

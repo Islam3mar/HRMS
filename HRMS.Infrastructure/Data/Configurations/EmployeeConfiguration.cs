@@ -16,6 +16,7 @@ namespace HRMS.Infrastructure.Data.Configurations
             builder.Property(e => e.NationalId).IsRequired().HasMaxLength(100);
             builder.Property(e => e.Salary).HasColumnType("decimal(18,2)");
             builder.Property(e => e.Gender).HasConversion<string>().HasMaxLength(20);
+            builder.Property(e => e.IsActive).HasDefaultValue(true);   // جديد - يمنع تكرار مشكلة الـ 0 الافتراضية
 
             builder.HasIndex(e => e.NationalId).IsUnique();
 
@@ -25,4 +26,4 @@ namespace HRMS.Infrastructure.Data.Configurations
                    .OnDelete(DeleteBehavior.SetNull);   // لو القسم اتمسح، الموظف يفضل موجود بس بلا قسم
         }
     }
-    }
+}

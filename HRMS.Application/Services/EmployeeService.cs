@@ -37,6 +37,13 @@ namespace HRMS.Application.Services
             return employees;
         }
 
+        public async Task<IEnumerable<Employee>> GetActiveEmployeesAsync()
+        {
+            var employees = (await _unitOfWork.Employees.GetActiveAsync()).ToList();
+            foreach (var e in employees) e.NationalId = _encryptionService.Decrypt(e.NationalId);
+            return employees;
+        }
+
         public async Task<Employee?> GetEmployeeByIdAsync(int id)
         {
             var employee = await _unitOfWork.Employees.GetByIdAsync(id);
@@ -46,6 +53,24 @@ namespace HRMS.Application.Services
 
         public async Task<EmployeeResult> CreateEmployeeAsync(EmployeeInput input)
         {
+            // قبل أي حاجة تانية: هل الرقم القومي ده بتاع موظف منتهي خدمته؟
+            // لو أيوه، منرفضش خالص - نرجع اقتراح "إعادة تفعيل" بدل رسالة تكرار عادية
+            if (!string.IsNullOrWhiteSpace(input.NationalId))
+            {
+                var inactiveMatch = await _unitOfWork.Employees.GetInactiveByNationalIdAsync(
+                    _encryptionService.Encrypt(input.NationalId.Trim()));
+
+                if (inactiveMatch != null)
+                {
+                    return new EmployeeResult
+                    {
+                        InactiveEmployeeIdFound = inactiveMatch.Id,
+                        InactiveEmployeeName = inactiveMatch.FullName,
+                        NationalIdError = $"هذا الرقم القومي يخص الموظف \"{inactiveMatch.FullName}\" الذي تم إنهاء خدمته سابقًا"
+                    };
+                }
+            }
+
             var result = await ValidateAsync(input, excludeEmployeeId: null);
             if (result.HasErrors) return result;
 
@@ -53,6 +78,28 @@ namespace HRMS.Application.Services
             employee.NationalId = _encryptionService.Encrypt(input.NationalId);
 
             await _unitOfWork.Employees.AddAsync(employee);
+            await _unitOfWork.SaveChangesAsync();
+
+            result.Success = true;
+            result.Employee = employee;
+            return result;
+        }
+
+        // إعادة تفعيل موظف منتهي خدمته ببياناته الجديدة (بدل إضافة سجل جديد منفصل)
+        public async Task<EmployeeResult> ReactivateEmployeeAsync(int id, EmployeeInput input)
+        {
+            var employee = await _unitOfWork.Employees.GetByIdAsync(id);
+            if (employee == null || employee.IsActive)
+                return new EmployeeResult { FullNameError = "لا يوجد موظف منتهي الخدمة بهذا الرقم" };
+
+            var result = await ValidateAsync(input, excludeEmployeeId: id);
+            if (result.HasErrors) return result;
+
+            _mapper.Map(input, employee);
+            employee.NationalId = _encryptionService.Encrypt(input.NationalId);
+            employee.IsActive = true;
+
+            _unitOfWork.Employees.Update(employee);
             await _unitOfWork.SaveChangesAsync();
 
             result.Success = true;
@@ -85,21 +132,29 @@ namespace HRMS.Application.Services
             return result;
         }
 
-        public async Task<(bool Success, string? Error)> DeleteEmployeeAsync(int id)
+        public async Task<(bool Success, string? Error, bool Deactivated)> DeleteEmployeeAsync(int id)
         {
             var employee = await _unitOfWork.Employees.GetByIdAsync(id);
-            if (employee == null) return (false, "الموظف غير موجود");
+            if (employee == null) return (false, "الموظف غير موجود", false);
+
+            if (!employee.IsActive)
+                return (false, "الموظف منتهي الخدمة بالفعل", false);
 
             _unitOfWork.Employees.Delete(employee);
 
             try
             {
                 await _unitOfWork.SaveChangesAsync();
-                return (true, null);
+                return (true, null, false);
             }
             catch (DbUpdateException)
             {
-                return (false, "لا يمكن حذف هذا الموظف لأن له رواتب معتمدة أو سجلات مرتبطة به");
+                // مينفعش نحذفه فعليًا لأن له رواتب معتمدة أو سجلات مرتبطة به
+                // فبدل الحذف الفعلي، بننهي خدمته (Soft Delete) عشان تاريخه المالي يفضل سليم للمراجعة لاحقاً
+                employee.IsActive = false;
+                _unitOfWork.Employees.Update(employee);
+                await _unitOfWork.SaveChangesAsync();
+                return (true, null, true);
             }
         }
 

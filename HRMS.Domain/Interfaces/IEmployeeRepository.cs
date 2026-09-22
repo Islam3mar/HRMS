@@ -11,10 +11,13 @@ namespace HRMS.Domain.Interfaces
         // الخاصة بالموظفين بس
         Task<IEnumerable<Employee>> SearchByNameAsync(string name);
         Task<IEnumerable<Employee>> GetByDepartmentAsync(int departmentId);
+        Task<IEnumerable<Employee>> GetActiveAsync();   // جديد - للاستخدام في العمليات اليومية (حضور/لوحة تحكم)
         Task<bool> NationalIdExistsAsync(string nationalId, int? excludeEmployeeId = null);
 
         Task<bool> FullNameExistsAsync(string fullName, int? excludeEmployeeId = null);
 
         Task<EmployeeSchedule?> GetScheduleAsync(int employeeId);
+
+        Task<Employee?> GetInactiveByNationalIdAsync(string nationalId);
     }
 }
