@@ -65,14 +65,13 @@ namespace HRMS.Application.Services
             var department = await _unitOfWork.Departments.GetByIdAsync(id);
             if (department == null) return (false, "القسم غير موجود");
 
-            if (await _unitOfWork.Departments.HasEmployeesAsync(id))
-                return (false, "لا يمكن حذف هذا القسم لأنه مرتبط بموظفين بالفعل");
+            if (await _unitOfWork.Departments.HasActiveEmployeesAsync(id))
+                return (false, "لا يمكن حذف هذا القسم لأنه مرتبط بموظفين نشطين بالفعل");
 
             _unitOfWork.Departments.Delete(department);
             await _unitOfWork.SaveChangesAsync();
             return (true, null);
         }
-
         private async Task<DepartmentResult> ValidateAsync(DepartmentInput input, int? excludeId)
         {
             var result = new DepartmentResult();

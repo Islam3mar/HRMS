@@ -22,6 +22,9 @@ namespace HRMS.Application.DTOs
         public string? AttendanceTimeError { get; set; }
         public string? DepartureTimeError { get; set; }
 
+        public int? InactiveEmployeeIdFound { get; set; }
+        public string? InactiveEmployeeName { get; set; }
+
         public bool HasErrors =>
             FullNameError != null || AddressError != null || PhoneNumberError != null ||
             GenderError != null || NationalityError != null || BirthDateError != null ||

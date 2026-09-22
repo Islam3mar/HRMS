@@ -25,9 +25,9 @@ namespace HRMS.Infrastructure.Repositories
                                               (excludeDepartmentId == null || d.Id != excludeDepartmentId));
         }
 
-        public async Task<bool> HasEmployeesAsync(int departmentId)
+        public async Task<bool> HasActiveEmployeesAsync(int departmentId)
         {
-            return await _context.Employees.AnyAsync(e => e.DepartmentId == departmentId);
+            return await _context.Employees.AnyAsync(e => e.DepartmentId == departmentId && e.IsActive);
         }
     }
 }

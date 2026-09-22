@@ -31,6 +31,17 @@ namespace HRMS.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        // بترجع الموظفين النشطين بس - مستخدمة في Dropdown الحضور ولوحة التحكم
+        public async Task<IEnumerable<Employee>> GetActiveAsync()
+        {
+            return await Query
+                .Where(e => e.IsActive)
+                .Include(e => e.Department)
+                .AsNoTracking()
+                .OrderBy(e => e.FullName)
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<Employee>> SearchByNameAsync(string name)
         {
             var spec = new EmployeesByNameSpecification(name);
@@ -62,8 +73,13 @@ namespace HRMS.Infrastructure.Repositories
         public async Task<bool> FullNameExistsAsync(string fullName, int? excludeEmployeeId = null)
         {
             return await Query
-                .AnyAsync(e => e.FullName == fullName &&
+                .AnyAsync(e => e.IsActive && e.FullName == fullName &&
                                (excludeEmployeeId == null || e.Id != excludeEmployeeId));
+        }
+
+        public async Task<Employee?> GetInactiveByNationalIdAsync(string nationalId)
+        {
+            return await Query.FirstOrDefaultAsync(e => e.NationalId == nationalId && !e.IsActive);
         }
     }
 }

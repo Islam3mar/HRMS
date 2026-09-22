@@ -11,10 +11,19 @@
     </ol>
 </nav>
 
+@if (TempData["InactiveEmployeeId"] != null)
+{
+    <div class="alert alert-warning">
+        هذا الرقم القومي يخص الموظف <strong>"@TempData["InactiveEmployeeName"]"</strong> الذي تم إنهاء خدمته سابقًا.
+        تقدر تعيد تفعيله بنفس البيانات الجديدة اللي دخلتها بدل ما تضيفه كموظف منفصل، باستخدام زرار "اعادة التفعيل" تحت.
+    </div>
+}
+
 <div class="card">
     <div class="card-header text-center">الموظفين</div>
     <div class="card-body">
         <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="row">
@@ -93,6 +102,17 @@
 
             <div class="text-start mt-3">
                 <button type="submit" class="btn btn-brand">حفظ</button>
+
+                @if (TempData["InactiveEmployeeId"] != null)
+                {
+                    <button type="submit"
+                            asp-action="Reactivate"
+                            asp-route-id="@TempData["InactiveEmployeeId"]"
+                            class="btn btn-warning">
+                        اعادة التفعيل بدلاً من الاضافة
+                    </button>
+                }
+
                 <a asp-action="Index" class="btn btn-outline-secondary">رجوع</a>
             </div>
         </form>

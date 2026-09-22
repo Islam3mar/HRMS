@@ -46,12 +46,42 @@ namespace HRMS.Web.Controllers
 
             if (!result.Success)
             {
+                // حالة خاصة: الرقم القومي بتاع موظف منتهي خدمته - نعرض اقتراح إعادة التفعيل بدل رسالة تكرار عادية
+                if (result.InactiveEmployeeIdFound.HasValue)
+                {
+                    TempData["InactiveEmployeeId"] = result.InactiveEmployeeIdFound.Value;
+                    TempData["InactiveEmployeeName"] = result.InactiveEmployeeName;
+                }
+
                 AddErrorsToModelState(result);
                 await FillOptions(model);
                 return View(model);
             }
 
             TempData["SuccessMessage"] = "تم اضافة الموظف بنجاح";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost, PermissionAuthorize(SystemPage.Employees, PermissionAction.Add)]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reactivate(int id, EmployeeFormViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                await FillOptions(model);
+                return View("Create", model);
+            }
+
+            var result = await _employeeService.ReactivateEmployeeAsync(id, MapToInput(model));
+
+            if (!result.Success)
+            {
+                AddErrorsToModelState(result);
+                await FillOptions(model);
+                return View("Create", model);
+            }
+
+            TempData["SuccessMessage"] = $"تم إعادة تفعيل الموظف \"{result.Employee!.FullName}\" بنجاح";
             return RedirectToAction(nameof(Index));
         }
 
@@ -105,14 +135,23 @@ namespace HRMS.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-
         [HttpPost, PermissionAuthorize(SystemPage.Employees, PermissionAction.Delete)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var (success, error) = await _employeeService.DeleteEmployeeAsync(id);
-            TempData["SuccessMessage"] = success ? "تم حذف الموظف بنجاح" : null;
-            TempData["ErrorMessage"] = success ? null : error;
+            var (success, error, deactivated) = await _employeeService.DeleteEmployeeAsync(id);
+
+            if (success)
+            {
+                TempData["SuccessMessage"] = deactivated
+                    ? "لا يمكن حذف الموظف نهائيًا لوجود سجلات رواتب مرتبطة به، لذلك تم إنهاء خدمته بدلاً من ذلك وتم إخفاؤه من القوائم النشطة"
+                    : "تم حذف الموظف بنجاح";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = error;
+            }
+
             return RedirectToAction(nameof(Index));
         }
 

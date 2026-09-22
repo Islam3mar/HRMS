@@ -27,19 +27,30 @@
                 <th>الرقم القومي</th>
                 <th>تاريخ التعاقد</th>
                 <th>الراتب</th>
+                <th class="text-center">الحالة</th>
                 <th class="text-center">العمليات</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var emp in Model.Items)
             {
-                <tr>
+                <tr class="@(emp.IsActive ? "" : "text-muted")">
                     <td>@emp.FullName</td>
                     <td>@(emp.Department?.Name ?? "-")</td>
                     <td>@emp.PhoneNumber</td>
                     <td>@emp.NationalId</td>
                     <td>@emp.ContractDate.ToString("yyyy/MM/dd")</td>
                     <td>@emp.Salary.ToString("N2")</td>
+                    <td class="text-center">
+                        @if (emp.IsActive)
+                        {
+                            <span class="badge bg-success">نشط</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">منتهي الخدمة</span>
+                        }
+                    </td>
                     <td class="text-center">
                         <a asp-action="Edit" asp-route-id="@emp.Id" class="btn-icon" title="تعديل / حذف">
                             <i class="bi bi-pencil-fill"></i>
